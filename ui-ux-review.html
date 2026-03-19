@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MB.OS V-Cycle Orchestrator — UI/UX Design Review</title>
+  <style>
+    :root {
+      --indigo: #3730a3;
+      --indigo-light: #e0e7ff;
+      --red: #dc2626;
+      --red-light: #fef2f2;
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --emerald: #059669;
+      --emerald-light: #ecfdf5;
+      --blue: #2563eb;
+      --blue-light: #eff6ff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-mono: 'Menlo', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: #f8fafc;
+      color: var(--gray-900);
+      line-height: 1.6;
+    }
+
+    /* ── Cover ── */
+    .cover {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%);
+      color: white;
+      padding: 72px 80px 64px;
+    }
+    .cover-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    .cover h1 {
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+    .cover-sub {
+      font-size: 16px;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 48px;
+      max-width: 560px;
+    }
+    .cover-meta {
+      display: flex;
+      gap: 40px;
+      border-top: 1px solid rgba(255,255,255,0.15);
+      padding-top: 32px;
+    }
+    .cover-meta-item label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 4px;
+    }
+    .cover-meta-item span {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 64px 40px;
+    }
+
+    /* ── Section Headers ── */
+    .section {
+      margin-bottom: 64px;
+    }
+    .section-number {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--indigo);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .section h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--gray-900);
+      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+    }
+    .section-intro {
+      font-size: 15px;
+      color: var(--gray-500);
+      margin-bottom: 32px;
+      max-width: 680px;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--gray-200);
+      margin: 0 0 64px;
+    }
+
+    /* ── TOC ── */
+    .toc {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 16px;
+      padding: 32px 36px;
+      margin-bottom: 64px;
+    }
+    .toc h3 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gray-400);
+      margin-bottom: 20px;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 48px;
+    }
+    .toc-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--gray-700);
+      text-decoration: none;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .toc-item:hover { color: var(--indigo); }
+    .toc-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gray-400);
+      min-width: 20px;
+    }
+
+    /* ── Score Cards ── */
+    .scorecard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .scorecard {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+    }
+    .scorecard-value {
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .scorecard-label {
+      font-size: 12px;
+      color: var(--gray-500);
+      font-weight: 500;
+    }
+    .score-good { color: var(--emerald); }
+    .score-warn { color: var(--amber); }
+    .score-bad  { color: var(--red); }
+
+    /* ── Info Panels ── */
+    .panel {
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      border: 1px solid;
+    }
+    .panel-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel p, .panel li {
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .panel ul { padding-left: 16px; }
+    .panel li { margin-bottom: 4px; }
+    .panel-info  { background: var(--blue-light);   border-color: #bfdbfe; }
+    .panel-info .panel-title  { color: var(--blue);    }
+    .panel-warn  { background: var(--amber-light);  border-color: #fde68a; }
+    .panel-warn .panel-title  { color: var(--amber);   }
+    .panel-error { background: var(--red-light);    border-color: #fecaca; }
+    .panel-error .panel-title { color: var(--red);     }
+    .panel-good  { background: var(--emerald-light);border-color: #a7f3d0; }
+    .panel-good .panel-title  { color: var(--emerald); }
+
+    /* ── Heuristic Table ── */
+    .heuristic-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 14px;
+      overflow: hidden;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    .heuristic-table thead {
+      background: var(--gray-50);
+    }
+    .heuristic-table th {
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gray-500);
+      text-align: left;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .heuristic-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--gray-100);
+      vertical-align: top;
+    }
+    .heuristic-table tr:last-child td { border-bottom: none; }
+    .heuristic-table tr:hover td { background: var(--gray-50); }
+
+    .rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .rating-pass  { background: var(--emerald-light); color: var(--emerald); }
+    .rating-warn  { background: var(--amber-light);   color: var(--amber);   }
+    .rating-fail  { background: var(--red-light);      color: var(--red);     }
+
+    /* ── Flow Diagram ── */
+    .flow {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin: 24px 0;
+      overflow-x: auto;
+      padding: 8px 0;
+    }
+    .flow-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 120px;
+    }
+    .flow-node {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      border: 2px solid;
+      margin-bottom: 10px;
+    }
+    .flow-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--gray-700);
+      line-height: 1.3;
+    }
+    .flow-arrow {
+      width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 14px;
+      color: var(--gray-400);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .node-start   { background: var(--indigo-light); border-color: var(--indigo); color: var(--indigo); }
+    .node-action  { background: white;               border-color: var(--gray-200); color: var(--gray-700); }
+    .node-warn    { background: var(--amber-light);  border-color: var(--amber);   color: var(--amber);   }
+    .node-success { background: var(--emerald-light);border-color: var(--emerald); color: var(--emerald); }
+    .node-error   { background: var(--red-light);    border-color: var(--red);     color: var(--red);     }
+
+    /* ── Screen Review Cards ── */
+    .screen-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .screen-card-header {
+      background: var(--gray-50);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .screen-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+    .screen-card-body {
+      padding: 24px;
+    }
+
+    /* ── Finding Items ── */
+    .finding {
+      display: flex;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .finding:last-child { border-bottom: none; }
+    .finding-sev {
+      flex-shrink: 0;
+      width: 8px;
+      border-radius: 4px;
+      align-self: stretch;
+      min-height: 40px;
+    }
+    .sev-critical { background: var(--red); }
+    .sev-major    { background: var(--amber); }
+    .sev-minor    { background: #60a5fa; }
+    .sev-positive { background: var(--emerald); }
+    .finding-content {}
+    .finding-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+    .tag-critical { background: var(--red-light);     color: var(--red);     }
+    .tag-major    { background: var(--amber-light);   color: var(--amber);   }
+    .tag-minor    { background: var(--blue-light);    color: var(--blue);    }
+    .tag-positive { background: var(--emerald-light); color: var(--emerald); }
+    .finding h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+    .finding p {
+      font-size: 13px;
+      color: var(--gray-500);
+      line-height: 1.6;
+    }
+    .finding-fix {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--indigo);
+      font-weight: 600;
+      background: var(--indigo-light);
+      padding: 6px 10px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    /* ── Recommendation Matrix ── */
+    .matrix {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .matrix-quadrant {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .matrix-quadrant h4 {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .matrix-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: var(--gray-700);
+    }
+    .matrix-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .q1 h4 { color: var(--red);     } .q1 .matrix-dot { background: var(--red); }
+    .q2 h4 { color: var(--amber);   } .q2 .matrix-dot { background: var(--amber); }
+    .q3 h4 { color: var(--blue);    } .q3 .matrix-dot { background: var(--blue); }
+    .q4 h4 { color: var(--emerald); } .q4 .matrix-dot { background: var(--emerald); }
+
+    /* ── Accessibility Table ── */
+    .a11y-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .a11y-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 18px;
+    }
+    .a11y-card h4 {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .a11y-card li {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-bottom: 6px;
+      list-style: none;
+      padding-left: 16px;
+      position: relative;
+    }
+    .a11y-card li::before { content: '–'; position: absolute; left: 0; color: var(--gray-400); }
+
+    /* ── Code Block ── */
+    .code-block {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin: 12px 0;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+    .code-comment { color: #6c7086; }
+    .code-key     { color: #89b4fa; }
+    .code-val     { color: #a6e3a1; }
+    .code-str     { color: #f38ba8; }
+
+    /* ── Footer ── */
+    .footer {
+      background: var(--gray-50);
+      border-top: 1px solid var(--gray-200);
+      padding: 32px 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--gray-400);
+    }
+
+    @media (max-width: 720px) {
+      .cover { padding: 40px 24px; }
+      .cover h1 { font-size: 28px; }
+      .container { padding: 40px 20px; }
+      .scorecard-grid { grid-template-columns: repeat(2, 1fr); }
+      .matrix { grid-template-columns: 1fr; }
+      .toc-grid { grid-template-columns: 1fr; }
+      .a11y-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════ COVER ════════════════════════ -->
+<div class="cover">
+  <div class="cover-tag">🔍 UI/UX Design Review</div>
+  <h1>MB.OS V-Cycle AI<br>Orchestrator</h1>
+  <p class="cover-sub">A comprehensive review of usability, user flows, information architecture, interaction design, visual hierarchy, and accessibility across the full application.</p>
+  <div class="cover-meta">
+    <div class="cover-meta-item"><label>Reviewed by</label><span>Senior Design Team</span></div>
+    <div class="cover-meta-item"><label>Date</label><span>March 2026</span></div>
+    <div class="cover-meta-item"><label>Version</label><span>Early Exploration</span></div>
+    <div class="cover-meta-item"><label>Stack</label><span>React · TypeScript · Tailwind CSS</span></div>
+  </div>
+</div>
+
+<!-- ════════════════════════ BODY ════════════════════════ -->
+<div class="container">
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h3>Contents</h3>
+    <div class="toc-grid">
+      <a class="toc-item" href="#overview"><span class="toc-num">01</span>App Overview & Purpose</a>
+      <a class="toc-item" href="#ia"><span class="toc-num">06</span>Information Architecture</a>
+      <a class="toc-item" href="#scores"><span class="toc-num">02</span>Overall Design Scores</a>
+      <a class="toc-item" href="#heuristics"><span class="toc-num">07</span>Heuristic Evaluation</a>
+      <a class="toc-item" href="#flows"><span class="toc-num">03</span>User Flow Analysis</a>
+      <a class="toc-item" href="#a11y"><span class="toc-num">08</span>Accessibility Audit</a>
+      <a class="toc-item" href="#screens"><span class="toc-num">04</span>Screen-by-Screen Review</a>
+      <a class="toc-item" href="#visual"><span class="toc-num">09</span>Visual Design System</a>
+      <a class="toc-item" href="#interactions"><span class="toc-num">05</span>Interaction Design</a>
+      <a class="toc-item" href="#recs"><span class="toc-num">10</span>Prioritised Recommendations</a>
+    </div>
+  </div>
+
+  <!-- 01 OVERVIEW -->
+  <div class="section" id="overview">
+    <div class="section-number">01 — App Overview</div>
+    <h2>Purpose & Target User</h2>
+    <p class="section-intro">Understanding the context before judging design choices.</p>
+
+    <div class="panel panel-info">
+      <div class="panel-title">📦 What this app is</div>
+      <p>MB.OS V-Cycle AI Orchestrator is an internal engineering tool for <strong>MBRDI ECU (Electronic Control Unit) software engineers</strong>. It automates the software quality lifecycle — Static Code Analysis (Astrée) → Unit Testing (Tessy) → Integration — and uses AI (Gemini) to generate analysis reports, summaries, and recommendations at each gate.</p>
+    </div>
+
+    <div class="panel panel-warn">
+      <div class="panel-title">🎯 Assumed Primary User</div>
+      <p>An <strong>embedded software engineer or team lead</strong> at MBRDI who manages one or more ECU feature modules. They understand AUTOSAR, C/C++, static analysis, and test coverage — but are not necessarily UX-savvy. They need to quickly see which modules are failing, why, and what to do next.</p>
+    </div>
+
+    <div class="panel panel-good">
+      <div class="panel-title">✅ Design Intent — Well Aligned</div>
+      <p>The app correctly adopts a <strong>pipeline management metaphor</strong> (stages, statuses, gate-passing). The card + table layout, status badges, and multi-step modal are all appropriate patterns for this kind of tool. The overall visual language is professional, not consumer, which matches the audience.</p>
+    </div>
+  </div>
+  <hr class="divider" />
+
+  <!-- 02 SCORES -->
+  <div class="section" id="scores">
+    <div class="section-number">02 — Design Scores</div>
+    <h2>Overall Rating</h2>
+    <p class="section-intro">Scored across five dimensions on a 1–10 scale at the early exploration stage.</p>
+    <div class="scorecard-grid">
+      <div class="scorecard">
+        <div class="scorecard-value score-warn">6.5</div>
+        <div class="scorecard-label">Usability</div>
+      </div>
+      <div class="scorecard">
+        <div class="scorecard-value score-warn">7.0</div>
+        <div class="scorecard-label">Visual Design</div>
+      </div>
+      <div class="scorecard">
+        <div class="scorecard-value score-bad">5.5</div>
+        <div class="scorecard-label">Information Architecture</div>
+      </div>
+      <div class="scorecard">
+        <div class="scorecard-value score-bad">4.5</div>
+        <div class="scorecard-label">Accessibility</div>
+      </div>
+    </div>
+    <div class="panel panel-info">
+      <div class="panel-title">📊 Interpretation</div>
+      <p>For an early exploration build, the visual design is strong. Usability is promising but blocked by a handful of high-impact issues. Information architecture has gaps that will compound as features are added. Accessibility needs deliberate attention before this ships internally.</p>
+    </div>
+  </div>
+  <hr class="divider" />
+
+  <!-- 03 USER FLOWS -->
+  <div class="section" id="flows">
+    <div class="section-number">03 — User Flows</div>
+    <h2>Primary User Journey Analysis</h2>
+    <p class="section-intro">Three core flows exist in the current build. Each is assessed below.</p>
+
+    <div class="screen-card">
+      <div class="screen-card-header">
+        <div class="screen-card-title">Flow 1 — Add a New Module & Start V-Cycle</div>
+        <span class="rating rating-warn">⚠ Needs Work</span>
+      </div>
+      <div class="screen-card-body">
+        <div class="flow">
+          <div class="flow-step"><div class="flow-node node-start">🏠</div><div class="flow-label">Dashboard</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-action">➕</div><div class="flow-label">Click<br>New Module</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-action">📝</div><div class="flow-label">Step 1<br>Module Def.</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-action">🌿</div><div class="flow-label">Step 2<br>Branch</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-warn">👁</div><div class="flow-label">Step 3<br>Review</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-action">▶️</div><div class="flow-label">Dashboard<br>Play button</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-success">⚙️</div><div class="flow-label">V-Cycle<br>Workflow</div></div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-critical"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-critical">Critical</span>
+            <h4>Two-step to start: Modal + separate Play button</h4>
+            <p>After creating a module, the user is dropped back to the dashboard and must find the Play button to actually start the V-Cycle. The modal's final "Add Module" CTA implies completion, but the workflow hasn't started. This creates a gap in user intent — they came to run a module, not just register it.</p>
+            <div class="finding-fix">→ Fix: Add a "Save & Start V-Cycle" primary action on Step 3, with "Save Only" as secondary.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-major"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-major">Major</span>
+            <h4>No progress indicator in the multi-step modal</h4>
+            <p>Users on Step 1 have no visual awareness that there are 3 steps total. There's no stepper component, no "Step 1 of 3" label, nothing. This causes disorientation and reduces confidence on first use.</p>
+            <div class="finding-fix">→ Fix: Add a simple 3-dot or numbered stepper below the modal header.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-major"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-major">Major</span>
+            <h4>ECU Target field is not wired up</h4>
+            <p>The "ECU Target" dropdown on Step 1 has no <code>value</code> or <code>onChange</code> handler. The selection is silently discarded. This is a logic bug masquerading as a UI issue — it will confuse engineers who set this field expecting it to matter.</p>
+            <div class="finding-fix">→ Fix: Wire up the field to <code>newFeature</code> state and surface the selected target in the Step 3 review panel.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-header">
+        <div class="screen-card-title">Flow 2 — Review a Failed Module & Retry</div>
+        <span class="rating rating-warn">⚠ Needs Work</span>
+      </div>
+      <div class="screen-card-body">
+        <div class="flow">
+          <div class="flow-step"><div class="flow-node node-start">🏠</div><div class="flow-label">Dashboard</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-error">⚠️</div><div class="flow-label">Spot Failed<br>Status Badge</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-action">🔄</div><div class="flow-label">Click<br>RotateCcw icon</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-warn">📋</div><div class="flow-label">V-Cycle<br>Workflow</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-action">🔧</div><div class="flow-label">Review AI<br>Analysis</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-success">✅</div><div class="flow-label">Resolve &<br>Re-run</div></div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-major"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-major">Major</span>
+            <h4>RotateCcw icon is ambiguous — "Retry" isn't obvious</h4>
+            <p>The retry action for failed modules uses a RotateCcw (circular arrow) icon with no label. In different tools this icon means "undo," "refresh," "retry," or "reset." Without a visible label or strong tooltip, users may hesitate or misinterpret the action — especially damaging in a tool where accidental re-runs have cost implications.</p>
+            <div class="finding-fix">→ Fix: Add a visible text label "Retry" next to the icon, or use a labelled contextual dropdown for actions.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-major"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-major">Major</span>
+            <h4>No failure summary visible on the dashboard</h4>
+            <p>A red "Static Code Analysis Failed" badge tells you <em>that</em> it failed, but not <em>why</em> — even at a glance (e.g. "12 warnings, 0 errors"). Engineers often need to decide priority from the table view without clicking in. The Checks column shows "4 / 6" but this doesn't communicate failure reason.</p>
+            <div class="finding-fix">→ Fix: Surface the top-level failure metric in the row — e.g. a mini inline stat "12 warnings" on hover or as a sub-label.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-positive"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-positive">Positive</span>
+            <h4>Contextual action system is smart</h4>
+            <p>The renderActions() function shows different CTAs based on module status (Play for ready, Retry for failed, Report for complete). This is exactly the right pattern — it reduces cognitive load by surfacing only the relevant next action.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-header">
+        <div class="screen-card-title">Flow 3 — Monitor Pipeline Status (Quick Scan)</div>
+        <span class="rating rating-pass">✓ Works Well</span>
+      </div>
+      <div class="screen-card-body">
+        <div class="flow">
+          <div class="flow-step"><div class="flow-node node-start">🏠</div><div class="flow-label">Dashboard</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-action">📊</div><div class="flow-label">Scan Stat<br>Cards</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-action">👀</div><div class="flow-label">Scan Table<br>Statuses</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-node node-success">✅</div><div class="flow-label">Prioritise<br>Next Action</div></div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-positive"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-positive">Positive</span>
+            <h4>StatCards + table is an effective monitoring pattern</h4>
+            <p>The aggregate metrics (Active Modules, Agents Online, Avg Preflight Score, GitHub Syncs) give a meaningful at-a-glance pulse. The status badge column in the table allows a fast scan to identify where attention is needed. This flow works well.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-minor"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-minor">Minor</span>
+            <h4>"Last Updated" is captured but never rendered</h4>
+            <p>Each Feature has a <code>lastUpdated</code> field ("2 mins ago", "1 hour ago") stored in state, but it never appears in the table UI. For monitoring, recency is critical — a passed test from yesterday vs. 2 minutes ago is very different in urgency.</p>
+            <div class="finding-fix">→ Fix: Add Last Updated as a sub-label under the module name or as a column.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr class="divider" />
+
+  <!-- 04 SCREEN REVIEW -->
+  <div class="section" id="screens">
+    <div class="section-number">04 — Screen-by-Screen Review</div>
+    <h2>Component Analysis</h2>
+    <p class="section-intro">Detailed findings for each major view and component.</p>
+
+    <!-- Global Nav -->
+    <div class="screen-card">
+      <div class="screen-card-header">
+        <div class="screen-card-title">Global Navigation (Layout.tsx)</div>
+        <span class="rating rating-warn">⚠ Incomplete</span>
+      </div>
+      <div class="screen-card-body">
+        <div class="finding">
+          <div class="finding-sev sev-critical"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-critical">Critical</span>
+            <h4>3 of 4 nav links are dead (#)</h4>
+            <p>"Homepage", "V-Cycle Module", and "Settings" all link to <code>#</code> and are indistinguishable from the live "Dashboard" link. Users clicking these links get no feedback, no navigation, and no indication the feature isn't available. In a demo context, this will erode trust immediately.</p>
+            <div class="finding-fix">→ Fix: Visually disable unimplemented links (muted color, cursor-not-allowed, tooltip "Coming soon"), or remove them from the nav until built.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-major"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-major">Major</span>
+            <h4>Bell and Search icons are imported but never rendered</h4>
+            <p>The <code>Bell</code> and <code>Search</code> icons are imported in Layout.tsx but not rendered in the final JSX. If these are planned features (notifications, global search), they should be deferred properly or added as visual placeholders with disabled state. If not planned, remove the imports.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-minor"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-minor">Minor</span>
+            <h4>No breadcrumbs when inside a V-Cycle Workflow</h4>
+            <p>When navigating to a module's V-Cycle view (<code>/workflow/:featureId</code>), the nav shows the same top-level links with no indication of where the user is in the app hierarchy. A back link or breadcrumb ("Dashboard > MonEmmBatTm > Static Analysis") would prevent disorientation.</p>
+            <div class="finding-fix">→ Fix: Add a breadcrumb component beneath the navbar on non-root routes.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-positive"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-positive">Positive</span>
+            <h4>Floating Copilot launcher is well-designed</h4>
+            <p>The fixed-position Copilot button with smooth scale/opacity animation, dark glass-panel header, and toggle-to-close logic is a polished interaction. The full-height right-panel layout for the chat is appropriately sized (400×600px). The Sparkles icon correctly communicates "AI" in modern product language.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="screen-card">
+      <div class="screen-card-header">
+        <div class="screen-card-title">Dashboard (Dashboard.tsx)</div>
+        <span class="rating rating-warn">⚠ Needs Work</span>
+      </div>
+      <div class="screen-card-body">
+        <div class="finding">
+          <div class="finding-sev sev-critical"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-critical">Critical</span>
+            <h4>Page content clips on short viewports — no scroll</h4>
+            <p>The outer Layout sets <code>main</code> to <code>overflow-hidden</code>, and the Dashboard inner container has no <code>overflow-y-auto</code>. On a 768px-height screen, the stat cards + tabs + table overflow beyond the viewport with no scrollbar. All content below the fold is unreachable.</p>
+            <div class="finding-fix">→ Fix: Change Dashboard root div to <code>h-full overflow-y-auto</code> and ensure the parent Layout's main is <code>overflow-hidden</code> (already done) or <code>overflow-y-auto</code>.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-critical"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-critical">Critical</span>
+            <h4>Status badge colour semantics: Amber for "Passed" is wrong</h4>
+            <p><code>STATIC_ANALYSIS_PASSED</code> and <code>UNIT_TESTING_PASSED</code> render amber badges with a Clock icon. Amber universally signals warning/in-progress, and a clock icon implies waiting — not success. An engineer scanning the table may act on these as if something is wrong when it isn't, creating false urgency.</p>
+            <div class="finding-fix">→ Fix: Use blue badges with a ChevronRight or ArrowRight icon for "passed but pipeline continues" states. Reserve amber for truly indeterminate/warning states.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-major"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-major">Major</span>
+            <h4>"Validation Tasks" tab shows static count, renders nothing</h4>
+            <p>The tab shows a hardcoded <code>2</code> badge and switching to it produces no visual change. A user exploring the interface will click this and see no result — blank or identical — which signals a bug rather than an empty state. This actively damages first impressions.</p>
+            <div class="finding-fix">→ Fix: Implement an empty state ("No validation tasks yet. Tasks are created automatically when a module fails a gate.") or hide the tab until the feature exists.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-major"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-major">Major</span>
+            <h4>Coverage column has no context labels</h4>
+            <p>The two badge chips (<strong>88%</strong> / <strong>92%</strong>) have no visible labels. What does each represent? "Actual / Target"? "Branch / Statement"? This is ambiguous for anyone unfamiliar with the data model. The <code>Feature</code> type defines it as just a string — the intent is not documented or surfaced.</p>
+            <div class="finding-fix">→ Fix: Add a column tooltip or sub-label pair: "Actual" and "Target" micro-labels beneath each value. Alternatively, show as a progress bar with target marked.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-minor"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-minor">Minor</span>
+            <h4>Filter / Sort / Date Filter buttons are inert</h4>
+            <p>The three toolbar buttons are visible and interactive-looking but have no event handlers. Clicking them produces no response. This is fine as scaffolding at early exploration, but should be either stubbed (e.g. show a "Coming soon" tooltip on hover) or removed to avoid confusion in reviews.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-minor"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-minor">Minor</span>
+            <h4>Table row hover is too subtle</h4>
+            <p><code>hover:bg-gray-50/50</code> produces a barely-perceptible highlight. Combined with the already light table background, the hover state is essentially invisible. Users get no tactile confirmation that rows are interactive/clickable. The <code>group</code> class on rows is unused.</p>
+            <div class="finding-fix">→ Fix: Increase to <code>hover:bg-gray-100</code> or add a left-border highlight on hover. Make rows clearly clickable (consider routing to the workflow detail on row click, not just the action button).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VCycle Workflow -->
+    <div class="screen-card">
+      <div class="screen-card-header">
+        <div class="screen-card-title">V-Cycle Workflow (VCycleWorkflow.tsx)</div>
+        <span class="rating rating-pass">✓ Mostly Good</span>
+      </div>
+      <div class="screen-card-body">
+        <div class="finding">
+          <div class="finding-sev sev-positive"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-positive">Positive</span>
+            <h4>3-stage Stepper with scale + shadow on active step is excellent</h4>
+            <p>The stepper correctly uses <code>scale-110</code> and a stronger shadow for the active step, plus <code>bg-emerald-500</code> with a checkmark for completed steps. This is a clean, readable pipeline indicator. The connecting line animating from gray to emerald is a polished touch.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-positive"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-positive">Positive</span>
+            <h4>File Viewer (IDE-style) is a strong design choice</h4>
+            <p>Showing the actual source files (acc_logic.c, test files, integration logs) in a VS Code-inspired file explorer + dark code panel gives engineers the "evidence" they need without leaving the tool. The file type icons (Code2, FileText, FileJson) with colour coding are well-differentiated.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-major"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-major">Major</span>
+            <h4>Analysis auto-starts on mount with no user confirmation</h4>
+            <p>In the <code>useEffect</code>, if the module status is <code>READY_FOR_STATIC_ANALYSIS</code> or <code>STATIC_ANALYSIS_FAILED</code>, <code>startAnalysis()</code> is called immediately. This means navigating to the workflow URL immediately triggers the Gemini API — no "Start Analysis" confirmation step. This is both a UX issue (no user control) and a cost/safety concern (unintended API calls).</p>
+            <div class="finding-fix">→ Fix: Show an "idle" state with a clear "Run Analysis" CTA on first load, rather than auto-triggering on mount.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-minor"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-minor">Minor</span>
+            <h4>Stepper step labels use ALL-CAPS tracking-widest — hard to read at small size</h4>
+            <p>The step label typography (<code>text-[10px] font-bold uppercase tracking-widest</code>) is positioned with <code>absolute -bottom-8</code> which risks overlapping on narrower screens. "Static Code Report" with wide tracking could collide with "Unit Testing".</p>
+            <div class="finding-fix">→ Fix: Use sentence case or title case labels at 11–12px, and test at 375px viewport width.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Tool -->
+    <div class="screen-card">
+      <div class="screen-card-header">
+        <div class="screen-card-title">Summary Tool (SummaryTool.tsx)</div>
+        <span class="rating rating-warn">⚠ Needs Work</span>
+      </div>
+      <div class="screen-card-body">
+        <div class="finding">
+          <div class="finding-sev sev-major"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-major">Major</span>
+            <h4>Tool exists as a standalone route but is unreachable from the main nav</h4>
+            <p>SummaryTool lives at <code>/summary</code> but no navigation link, breadcrumb, or card in the dashboard points there. Same applies to TestCaseTool, TestQualityTool, VisualizationTool, UncoveredBranchesTool, AstreeTool, and HistoryTool. Eight screens exist with no navigational entry point — they're invisible to users unless they know the URL.</p>
+            <div class="finding-fix">→ Fix: Determine whether these tools surface <em>within</em> the VCycle workflow steps (as sub-panels) or as standalone pages navigable from a side nav. Either is valid, but the decision must be made and implemented.</div>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="finding-sev sev-minor"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-minor">Minor</span>
+            <h4>Traceability warning is visually buried</h4>
+            <p>The mock data includes an important warning: "Potential wrong linking of requirement id to the test case: PV_EMM-87779." For automotive software, traceability errors are critical (ISO 26262 / ASPICE compliance). This warning should be front-and-centre, not a secondary piece of data.</p>
+            <div class="finding-fix">→ Fix: Surface traceability warnings as a prominent alert panel at the top of the summary view, not inline with other data.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <hr class="divider" />
+
+  <!-- 05 INTERACTION DESIGN -->
+  <div class="section" id="interactions">
+    <div class="section-number">05 — Interaction Design</div>
+    <h2>Patterns & Behaviours</h2>
+    <p class="section-intro">Assessing the quality and consistency of interactive patterns across the app.</p>
+
+    <table class="heuristic-table">
+      <thead>
+        <tr>
+          <th>Pattern</th>
+          <th>Implementation</th>
+          <th>Assessment</th>
+          <th>Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Loading states</strong></td>
+          <td>Loader2 spinner used in analysis flows</td>
+          <td>Present but could benefit from skeleton loading in the table for initial data fetch</td>
+          <td><span class="rating rating-warn">Partial</span></td>
+        </tr>
+        <tr>
+          <td><strong>Hover feedback</strong></td>
+          <td>Most buttons have <code>hover:</code> transitions</td>
+          <td>Table rows too subtle; action icon buttons adequate</td>
+          <td><span class="rating rating-warn">Partial</span></td>
+        </tr>
+        <tr>
+          <td><strong>Focus states</strong></td>
+          <td>Inputs have <code>focus:ring-2 focus:ring-indigo-500/20</code></td>
+          <td>Ring is too faint (20% opacity). Not visible enough for keyboard navigation</td>
+          <td><span class="rating rating-fail">Insufficient</span></td>
+        </tr>
+        <tr>
+          <td><strong>Transitions</strong></td>
+          <td>Copilot panel: scale + opacity. AI sections: slide-in-from-top</td>
+          <td>Well-calibrated, not over-animated. Good use of <code>duration-300</code></td>
+          <td><span class="rating rating-pass">Good</span></td>
+        </tr>
+        <tr>
+          <td><strong>Empty states</strong></td>
+          <td>None exist anywhere in the app</td>
+          <td>Every tab and filtered view needs an empty state to prevent blank/broken appearance</td>
+          <td><span class="rating rating-fail">Missing</span></td>
+        </tr>
+        <tr>
+          <td><strong>Error states</strong></td>
+          <td>No error handling UI visible</td>
+          <td>API failures (Gemini errors, network issues) have no user-facing error display</td>
+          <td><span class="rating rating-fail">Missing</span></td>
+        </tr>
+        <tr>
+          <td><strong>Confirmation dialogs</strong></td>
+          <td>Delete action (<code>handleDeleteFeature</code>) has no confirm step</td>
+          <td>Destructive actions must require confirmation. Accidental delete has no undo.</td>
+          <td><span class="rating rating-fail">Missing</span></td>
+        </tr>
+        <tr>
+          <td><strong>Toast/Notifications</strong></td>
+          <td>No toast system exists</td>
+          <td>No feedback when a module is added, deleted, or an analysis completes</td>
+          <td><span class="rating rating-fail">Missing</span></td>
+        </tr>
+        <tr>
+          <td><strong>Disabled states</strong></td>
+          <td>Modal Continue button: <code>disabled:opacity-50</code></td>
+          <td>Correct, but no explanation of <em>why</em> it's disabled (tooltip or inline hint)</td>
+          <td><span class="rating rating-warn">Partial</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <hr class="divider" />
+
+  <!-- 06 IA -->
+  <div class="section" id="ia">
+    <div class="section-number">06 — Information Architecture</div>
+    <h2>Structure & Navigation</h2>
+    <p class="section-intro">How the app organises content and how users find their way around.</p>
+
+    <div class="panel panel-error">
+      <div class="panel-title">🚨 Major IA Gap — 8 Routes with No Navigation</div>
+      <p>The app defines <strong>10 routes</strong> but the navbar exposes access to <strong>1</strong> (Dashboard). Eight tool components (SummaryTool, TestCaseTool, TestQualityTool, VisualizationTool, UncoveredBranchesTool, AstreeTool, HistoryTool, and the VCycleWorkflow) are completely invisible from the navigation layer. This suggests the intended IA hasn't been built yet — the routing exists but the navigation shell doesn't match it.</p>
+    </div>
+
+    <div class="panel panel-warn">
+      <div class="panel-title">⚠ Decision Needed: Flat nav or nested within workflow?</div>
+      <p>There are two valid IA models for this tool. <strong>Option A (Flat):</strong> Add a left sidebar with all tools listed, accessible independently from any point. <strong>Option B (Nested):</strong> Tools surface contextually within the VCycle workflow steps (e.g. clicking "Unit Testing" step opens the TestCaseTool inline). Option B is more sophisticated and appropriate for a pipeline tool — but it requires the workflow component to orchestrate tool display.</p>
+    </div>
+
+    <div class="panel panel-info">
+      <div class="panel-title">💡 Recommended IA Structure</div>
+      <p>Given this is an automated pipeline tool, the recommended structure is: <strong>Dashboard</strong> (module registry + stats) as the home, with the <strong>V-Cycle Workflow</strong> as a full-screen detail view per module. Within each workflow step, the relevant tools (Astrée, TestCase, Summary etc.) should surface as <em>sub-panels or expandable sections</em> — not separate top-level routes. The dedicated tool routes could remain for standalone/deep-link access but shouldn't be primary navigation.</p>
+    </div>
+  </div>
+  <hr class="divider" />
+
+  <!-- 07 HEURISTICS -->
+  <div class="section" id="heuristics">
+    <div class="section-number">07 — Heuristic Evaluation</div>
+    <h2>Nielsen's 10 Usability Heuristics</h2>
+    <p class="section-intro">Each heuristic rated: Pass, Partial, or Fail — with specific evidence.</p>
+    <table class="heuristic-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Heuristic</th>
+          <th>Evidence from Codebase</th>
+          <th>Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><strong>Visibility of System Status</strong></td>
+          <td>Status badges and stepper show state well. But no toast on actions, no progress on API calls beyond spinner, no system-level health indicator</td>
+          <td><span class="rating rating-warn">Partial</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><strong>Match Between System & Real World</strong></td>
+          <td>ECU/AUTOSAR terminology (DcpChassis, MonEmmBatTm) is appropriate for the audience. The V-Cycle metaphor correctly mirrors the real automotive development process</td>
+          <td><span class="rating rating-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><strong>User Control & Freedom</strong></td>
+          <td>Analysis auto-starts on mount (no confirmation). Delete has no undo. Modal has no keyboard escape handling visible. "Cancel" in modal only closes, no discard confirmation for in-progress work</td>
+          <td><span class="rating rating-fail">Fail</span></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><strong>Consistency & Standards</strong></td>
+          <td>Border radii inconsistent (3xl vs 2xl vs xl vs lg). Amber used for both "warning" AND "passed-but-waiting" states. Three stub nav links break the pattern of working links</td>
+          <td><span class="rating rating-warn">Partial</span></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><strong>Error Prevention</strong></td>
+          <td>Good: modal Continue disabled if name empty. Bad: delete with no confirm, ECU Target silently discarded, analysis auto-triggers</td>
+          <td><span class="rating rating-warn">Partial</span></td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><strong>Recognition over Recall</strong></td>
+          <td>Icon-only action buttons require recall of icon meanings. Coverage column requires knowing the two-value convention. Good: status badges reduce recall load</td>
+          <td><span class="rating rating-warn">Partial</span></td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td><strong>Flexibility & Efficiency</strong></td>
+          <td>No keyboard shortcuts. No bulk actions. No search functionality beyond a visible-but-unfunctional input. Power users (frequent pipeline reviewers) have no efficiency tools</td>
+          <td><span class="rating rating-fail">Fail</span></td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td><strong>Aesthetic & Minimalist Design</strong></td>
+          <td>Strong: clean, white-dominant, good whitespace. Some stat cards could be more information-dense. The "MB.OS Agent" button in nav competes slightly with the floating copilot launcher</td>
+          <td><span class="rating rating-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td><strong>Help Users Recognise, Diagnose & Recover from Errors</strong></td>
+          <td>No error states exist in the UI. API failures, empty results, and validation errors have no user-visible feedback beyond a spinner that never resolves</td>
+          <td><span class="rating rating-fail">Fail</span></td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td><strong>Help & Documentation</strong></td>
+          <td>The AI Copilot is a clever built-in help mechanism. No onboarding, tooltips, or contextual help beyond what AI provides. Appropriate for internal tooling at this stage</td>
+          <td><span class="rating rating-warn">Partial</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <hr class="divider" />
+
+  <!-- 08 ACCESSIBILITY -->
+  <div class="section" id="a11y">
+    <div class="section-number">08 — Accessibility Audit</div>
+    <h2>WCAG 2.1 AA Review</h2>
+    <p class="section-intro">Accessibility findings against the four WCAG principles: Perceivable, Operable, Understandable, Robust.</p>
+
+    <div class="a11y-grid">
+      <div class="a11y-card">
+        <h4 style="color: var(--red);">❌ Perceivable</h4>
+        <ul>
+          <li>Icon-only action buttons lack visible text; <code>title</code> attribute is not a reliable accessible name</li>
+          <li>Coverage column provides no textual context for screen readers ("88%" is meaningless without "actual coverage")</li>
+          <li>Status badge icons (AlertCircle, CheckCircle, Clock) are purely decorative SVGs with no <code>aria-label</code></li>
+          <li><code>focus:ring-indigo-500/20</code> — 20% opacity focus ring fails contrast in all backgrounds</li>
+        </ul>
+      </div>
+      <div class="a11y-card">
+        <h4 style="color: var(--amber);">⚠ Operable</h4>
+        <ul>
+          <li>Table rows are not keyboard-navigable (no <code>tabIndex</code>, no row click handler)</li>
+          <li>Modal cannot be dismissed with Escape key (no <code>onKeyDown</code> handler visible)</li>
+          <li>Copilot floating panel: focus not trapped when open, focus does not return to launcher on close</li>
+          <li>No skip-to-main-content link</li>
+        </ul>
+      </div>
+      <div class="a11y-card">
+        <h4 style="color: var(--amber);">⚠ Understandable</h4>
+        <ul>
+          <li>Amber "Passed" badges will confuse both sighted users and AT users — inconsistent state semantics</li>
+          <li>No <code>lang</code> attribute on <code>&lt;html&gt;</code> in index.html (screen reader language determination fails)</li>
+          <li>Inline <code>text-[10px]</code> label text may be below minimum readable size for low-vision users</li>
+        </ul>
+      </div>
+      <div class="a11y-card">
+        <h4 style="color: var(--emerald);">✓ Robust</h4>
+        <ul>
+          <li>Semantic HTML used correctly — <code>&lt;table&gt;</code> with <code>&lt;thead&gt;</code>, <code>&lt;th&gt;</code>, <code>&lt;tbody&gt;</code></li>
+          <li>React with TypeScript ensures type safety in rendered props</li>
+          <li>Inter + JetBrains Mono are well-supported, readable fonts</li>
+          <li>Tailwind produces valid, predictable CSS</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel panel-error">
+      <div class="panel-title">🔴 Highest Priority A11y Fix</div>
+      <p>Add <code>aria-label</code> attributes to all icon-only buttons. This is a one-line fix per button and is the single highest-impact accessibility improvement. Example:</p>
+    </div>
+    <div class="code-block">
+      <span class="code-comment">// Before</span><br>
+      &lt;button <span class="code-key">className</span>=<span class="code-str">"..."</span> <span class="code-key">title</span>=<span class="code-str">"Start V-Cycle"</span>&gt;<br>
+      &nbsp;&nbsp;&lt;Play <span class="code-key">size</span>=<span class="code-val">{18}</span> /&gt;<br>
+      &lt;/button&gt;<br><br>
+      <span class="code-comment">// After</span><br>
+      &lt;button <span class="code-key">className</span>=<span class="code-str">"..."</span> <span class="code-key">aria-label</span>=<span class="code-str">"Start V-Cycle for {feature.name}"</span>&gt;<br>
+      &nbsp;&nbsp;&lt;Play <span class="code-key">size</span>=<span class="code-val">{18}</span> <span class="code-key">aria-hidden</span>=<span class="code-str">"true"</span> /&gt;<br>
+      &lt;/button&gt;
+    </div>
+  </div>
+  <hr class="divider" />
+
+  <!-- 09 VISUAL -->
+  <div class="section" id="visual">
+    <div class="section-number">09 — Visual Design</div>
+    <h2>Design System Observations</h2>
+    <p class="section-intro">What's working, what needs codifying, and what's inconsistent.</p>
+
+    <div class="screen-card">
+      <div class="screen-card-header"><div class="screen-card-title">Colour Palette</div><span class="rating rating-warn">Partial</span></div>
+      <div class="screen-card-body">
+        <div class="finding">
+          <div class="finding-sev sev-positive"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-positive">Positive</span>
+            <h4>Indigo-800 primary is a strong, distinctive choice for engineering tooling</h4>
+            <p>Indigo-800 (#3730a3) sits between consumer-blue and enterprise-navy. It feels technical without being cold. Consistent use across buttons, active states, links, and the navbar logo creates strong visual coherence.</p>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="finding-sev sev-critical"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-critical">Critical</span>
+            <h4>Semantic colours are not fully consistent</h4>
+            <p>Amber is used for both <em>pipeline-in-progress</em> (intended) and <em>analysis-passed</em> (wrong). Red correctly maps to failure states. Emerald maps to success/complete. Blue is unused as a semantic colour but would be the natural fit for "passed, progressing." Define a formal 5-colour semantic system: <strong>Indigo</strong> (action/primary), <strong>Blue</strong> (in-progress/awaiting), <strong>Amber</strong> (warning/needs attention), <strong>Red</strong> (error/failed), <strong>Emerald</strong> (success/complete).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-header"><div class="screen-card-title">Typography</div><span class="rating rating-pass">Good</span></div>
+      <div class="screen-card-body">
+        <div class="finding">
+          <div class="finding-sev sev-positive"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-positive">Positive</span>
+            <h4>Inter + JetBrains Mono is the right pairing</h4>
+            <p>Inter's proportional spacing works well for dense data tables. JetBrains Mono for branch names (feat/battery-monitor) and code views creates an immediately legible context switch. The font-size scale from text-[10px] to text-3xl is broad but each usage feels intentional.</p>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="finding-sev sev-minor"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-minor">Minor</span>
+            <h4>text-[10px] labels may be too small</h4>
+            <p>Several labels use <code>text-[10px]</code> (modal field labels, table headers). At non-retina screens, this can read as blurry or too small for prolonged use. Minimum recommended body text is 12px; labels at 11px are acceptable. Drop all <code>text-[10px]</code> uses to <code>text-xs</code> (12px).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-card-header"><div class="screen-card-title">Spacing & Border Radius</div><span class="rating rating-warn">Inconsistent</span></div>
+      <div class="screen-card-body">
+        <div class="finding">
+          <div class="finding-sev sev-major"></div>
+          <div class="finding-content">
+            <span class="finding-tag tag-major">Major</span>
+            <h4>Border-radius scale is not codified</h4>
+            <p>Current usage: <code>rounded-3xl</code> (stat cards, table container), <code>rounded-2xl</code> (modal, file viewer), <code>rounded-xl</code> (inputs, selects), <code>rounded-lg</code> (buttons, action buttons), <code>rounded-full</code> (badges, copilot button). This 5-level scale is reasonable but should be explicitly defined: <strong>Container</strong> = 3xl, <strong>Panel</strong> = 2xl, <strong>Input/Card</strong> = xl, <strong>Button</strong> = lg, <strong>Pill/Badge</strong> = full. Currently it's pattern-matched rather than principled.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr class="divider" />
+
+  <!-- 10 RECOMMENDATIONS -->
+  <div class="section" id="recs">
+    <div class="section-number">10 — Prioritised Recommendations</div>
+    <h2>Action Matrix</h2>
+    <p class="section-intro">Findings sorted by Impact × Effort. Tackle top-left first.</p>
+
+    <div class="matrix">
+      <div class="matrix-quadrant q1">
+        <h4>🔴 Do First — High Impact, Low Effort</h4>
+        <div class="matrix-item"><div class="matrix-dot"></div>Fix status badge semantics — change Passed states from amber to blue</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Add aria-label to all icon-only action buttons</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Add lang="en" to index.html &lt;html&gt; tag</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Disable/grey-out the 3 stub nav links with tooltips</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Render lastUpdated in the dashboard table</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Wire up ECU Target dropdown to state</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Add overflow-y-auto to Dashboard root div</div>
+      </div>
+      <div class="matrix-quadrant q2">
+        <h4>🟡 Plan Soon — High Impact, Higher Effort</h4>
+        <div class="matrix-item"><div class="matrix-dot"></div>Add step progress indicator to the multi-step modal</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Add "Save & Start V-Cycle" CTA on modal Step 3</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Replace auto-start analysis with explicit "Run Analysis" CTA</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Implement Validation Tasks tab content + empty state</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Add delete confirmation dialog</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Decide and implement IA for 8 orphaned tool routes</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Implement toast/notification system for async actions</div>
+      </div>
+      <div class="matrix-quadrant q3">
+        <h4>🔵 Nice to Have — Lower Impact, Low Effort</h4>
+        <div class="matrix-item"><div class="matrix-dot"></div>Add visible labels to action buttons on hover</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Increase table row hover from gray-50/50 to gray-100</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Add coverage column tooltip ("Actual / Target")</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Upgrade focus rings from 20% opacity to full ring-indigo-600</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Replace text-[10px] with text-xs (12px) throughout</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Add breadcrumbs on nested routes</div>
+      </div>
+      <div class="matrix-quadrant q4">
+        <h4>🟢 Future Sprint — Strategic Investments</h4>
+        <div class="matrix-item"><div class="matrix-dot"></div>Keyboard shortcut system (K to open Copilot, N for New Module)</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Full keyboard navigation for table rows</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Global search (wire up existing input)</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Codify design tokens into a formal system</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Onboarding flow for first-time users</div>
+        <div class="matrix-item"><div class="matrix-dot"></div>Coverage visualisation (progress bar with target line)</div>
+      </div>
+    </div>
+
+    <div class="panel panel-good">
+      <div class="panel-title">✅ Summary Verdict</div>
+      <p>This is a <strong>genuinely strong early exploration</strong>. The visual language is coherent, the core metaphor (V-Cycle pipeline) is correctly chosen, and several interaction decisions (contextual actions, file viewer, AI analysis sections) show real product thinking. The gaps are mostly <strong>structural completeness</strong> (empty states, error handling, navigation coverage) and <strong>a few critical semantic mistakes</strong> (amber for "passed", auto-start on mount). None of the issues are architectural — they're all fixable within a focused 1–2 week sprint without redesigning anything from scratch.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>MB.OS V-Cycle AI Orchestrator — UI/UX Design Review · March 2026</span>
+  <span>Early Exploration Stage · 10 Sections · 35+ Findings</span>
+</div>
+
+</body>
+</html>
