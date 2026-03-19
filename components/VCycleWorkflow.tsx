@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   CheckCircle, Circle, Clock, AlertCircle, ChevronRight, Play, Check, X, 
   ArrowLeft, ArrowRight, Loader2, Layers, Bot, Send, Activity, ShieldCheck, Github, 
-  MessageSquare, GitBranch, BarChart2, RotateCcw, ChevronDown, User, FileText,
+  MessageSquare, GitBranch, BarChart2, RotateCcw, ChevronDown, User, FileText, MoreVertical,
   Code2, FileJson, FolderOpen, Eye
 } from 'lucide-react';
 import Markdown from 'react-markdown';
