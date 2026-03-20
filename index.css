@@ -1,25 +1,140 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
+  :root {
+    color-scheme: light;
+    --shell-bg: #f3f1ec;
+    --shell-ink: #111318;
+    --shell-muted: #5b6270;
+    --shell-line: rgba(17, 19, 24, 0.08);
+    --shell-panel: rgba(255, 255, 255, 0.74);
+    --shell-panel-strong: rgba(255, 255, 255, 0.9);
+    --shell-accent: #b11f29;
+    --shell-accent-soft: rgba(177, 31, 41, 0.12);
+    --shell-steel: #233245;
+    --shell-gold: #8d6f32;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background: var(--shell-bg);
+  }
+
   body {
-    @apply bg-[#F8FAFC] text-gray-900 antialiased;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(177, 31, 41, 0.12), transparent 32%),
+      radial-gradient(circle at top right, rgba(35, 50, 69, 0.16), transparent 28%),
+      linear-gradient(180deg, #f8f4ef 0%, #f2efe8 42%, #ece9e2 100%);
+    color: var(--shell-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    @apply antialiased;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  * {
+    border-color: var(--shell-line);
+  }
+
+  ::selection {
+    background: rgba(177, 31, 41, 0.18);
+    color: var(--shell-ink);
+  }
+
+  button,
+  [role='button'],
+  a {
+    touch-action: manipulation;
+  }
+
+  input,
+  textarea,
+  select {
+    color: var(--shell-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer components {
+  .panel-surface {
+    background: linear-gradient(180deg, var(--shell-panel-strong) 0%, var(--shell-panel) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    box-shadow:
+      0 22px 60px rgba(17, 19, 24, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(16px);
+  }
+
+  .panel-card {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(17, 19, 24, 0.07);
+    box-shadow:
+      0 16px 36px rgba(17, 19, 24, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.84);
+  }
+
+  .panel-card-soft {
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow:
+      0 12px 28px rgba(17, 19, 24, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  }
+
+  .panel-surface-dark {
+    background:
+      linear-gradient(180deg, rgba(18, 22, 29, 0.96) 0%, rgba(23, 29, 37, 0.94) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+  }
+
+  .app-grid {
+    background-image:
+      linear-gradient(rgba(17, 19, 24, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(17, 19, 24, 0.04) 1px, transparent 1px);
+    background-size: 96px 96px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 88%);
+  }
+
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-[var(--shell-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  }
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-track {
     @apply bg-transparent;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-gray-200 rounded-full hover:bg-gray-300 transition-colors;
+    @apply rounded-full bg-black/10 transition-colors hover:bg-black/20;
   }
 }

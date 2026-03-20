@@ -75,7 +75,7 @@ const Stepper: React.FC<{ currentStep: number }> = ({ currentStep }) => {
   const steps = ['Static Code Report', 'Unit Testing', 'Integration'];
   
   return (
-    <div className="flex items-center gap-4 mb-8 border-b border-gray-100 pb-6 w-full">
+    <div className="flex items-center gap-3 mb-6 border-b border-gray-200/70 pb-4 w-full overflow-x-auto">
       {steps.map((step, index) => (
         <React.Fragment key={step}>
           <div className={`flex items-center gap-2 ${index > currentStep ? 'opacity-50' : ''}`}>
@@ -116,17 +116,17 @@ const FileViewer: React.FC<{ files: FileItem[] }> = ({ files }) => {
   return (
     <div className="flex h-full bg-white">
       {/* Sidebar */}
-      <div className="w-64 border-r border-gray-200 flex flex-col bg-gray-50/50">
-        <div className="p-4 border-b border-gray-200 flex items-center gap-2">
+      <div className="w-56 border-r border-gray-200/80 flex flex-col bg-slate-50/80">
+        <div className="px-4 py-3 border-b border-gray-200/80 flex items-center gap-2">
           <FolderOpen size={16} className="text-gray-400" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Workspace</span>
+          <span className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500">Workspace</span>
         </div>
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto py-1.5">
           {files.map((file, idx) => (
             <button
               key={idx}
               onClick={() => setSelectedFile(file)}
-              className={`w-full flex items-center gap-3 px-4 py-2 text-left transition-colors ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                 selectedFile.name === file.name 
                   ? 'bg-indigo-50 text-indigo-900 border-r-2 border-indigo-600' 
                   : 'text-gray-600 hover:bg-gray-100'
@@ -143,7 +143,7 @@ const FileViewer: React.FC<{ files: FileItem[] }> = ({ files }) => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="p-4 border-b border-gray-200 flex items-center gap-2 bg-white">
+        <div className="px-4 py-3 border-b border-gray-200/80 flex items-center gap-2 bg-white">
           {selectedFile.type === 'code' ? <Code2 size={16} className="text-indigo-600" /> : 
            selectedFile.type === 'report' ? <FileText size={16} className="text-emerald-600" /> : 
            <FileJson size={16} className="text-amber-600" />}
@@ -997,8 +997,8 @@ const ReportWorkspace: React.FC<{
   const selectedReport = reportsForSelectedTool.find((report) => report.id === selectedReportId) || reportsForSelectedTool[0];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[600px] overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-200 flex items-start justify-between gap-4 bg-white">
+    <div className="panel-card rounded-[26px] flex flex-col h-[560px] overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-200/80 flex items-start justify-between gap-4 bg-white/90">
         <div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-indigo-500" />
@@ -1012,7 +1012,7 @@ const ReportWorkspace: React.FC<{
             id={`${title}-report-picker`}
             value={selectedReport?.id || ''}
             onChange={(event) => setSelectedReportId(event.target.value)}
-            className="min-w-[210px] px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            className="min-w-[190px] px-3 py-2 border border-gray-200/80 rounded-lg bg-gray-50 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-200"
           >
             {reportsForSelectedTool.map((report) => (
               <option key={report.id} value={report.id}>
@@ -1031,8 +1031,8 @@ const ReportWorkspace: React.FC<{
             {isToolMenuOpen && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setIsToolMenuOpen(false)} />
-                <div className="absolute right-0 top-11 z-40 w-56 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden">
-                  <div className="px-3 py-2 border-b border-gray-100">
+                <div className="absolute right-0 top-11 z-40 w-56 rounded-xl border border-gray-200/80 bg-white shadow-lg overflow-hidden">
+                  <div className="px-3 py-2 border-b border-gray-100/90">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Tools</p>
                   </div>
                   {availableTools.map((tool) => {
@@ -1066,10 +1066,10 @@ const ReportWorkspace: React.FC<{
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#F8FAFC] p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#F8FAFC] p-3.5 space-y-3.5">
         {selectedReport ? (
           <>
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div className="rounded-[24px] border border-gray-200/80 bg-white p-4 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -1092,7 +1092,7 @@ const ReportWorkspace: React.FC<{
                   Active tool: <span className="font-semibold text-gray-900">{getToolLabel(selectedReport.tool)}</span>
                 </div>
               </div>
-              <p className="mt-4 text-sm leading-6 text-gray-600">{selectedReport.summary}</p>
+              <p className="mt-3 text-sm leading-6 text-gray-600">{selectedReport.summary}</p>
             </div>
 
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
@@ -1104,8 +1104,8 @@ const ReportWorkspace: React.FC<{
               ))}
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5">
+              <div className="rounded-[24px] border border-gray-200/80 bg-white p-4 shadow-sm">
                 <h4 className="text-sm font-bold text-gray-900">Review Focus</h4>
                 <ul className="mt-4 space-y-3">
                   {selectedReport.highlights.map((highlight) => (
@@ -1117,7 +1117,7 @@ const ReportWorkspace: React.FC<{
                 </ul>
               </div>
 
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="rounded-[24px] border border-gray-200/80 bg-white p-4 shadow-sm">
                 <h4 className="text-sm font-bold text-gray-900">{selectedReport.snippetTitle || 'Report extract'}</h4>
                 <pre className="mt-4 rounded-xl bg-[#101828] text-slate-200 p-4 text-xs leading-6 overflow-x-auto whitespace-pre-wrap font-mono">
                   <code>{selectedReport.snippet || 'No saved extract for this report yet.'}</code>
@@ -1126,13 +1126,13 @@ const ReportWorkspace: React.FC<{
             </div>
 
             {analysisReport && analysisTool === selectedReport.tool && (
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="rounded-[24px] border border-gray-200/80 bg-white p-4 shadow-sm">
                 <AIAnalysisSection report={analysisReport} />
               </div>
             )}
           </>
         ) : (
-          <div className="h-full rounded-2xl border border-dashed border-gray-300 bg-white flex items-center justify-center text-sm text-gray-500">
+          <div className="h-full rounded-[24px] border border-dashed border-gray-300 bg-white flex items-center justify-center text-sm text-gray-500">
             No reports available for this tool yet.
           </div>
         )}
@@ -1523,9 +1523,9 @@ Root cause was an unaligned memory allocation in the gateway driver.
   const integrationWorkspaceReports = buildIntegrationReports(feature.name, integrationReport, integrationState);
 
   return (
-    <div className="flex gap-8 max-w-[1600px] mx-auto">
+    <div className="flex gap-6 max-w-[1500px] mx-auto">
       <div className="flex-1 min-w-0">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => navigate('/')}
@@ -1549,7 +1549,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2 shadow-sm">
+            <button className="panel-card px-3.5 py-2 text-sm font-semibold text-gray-700 rounded-xl hover:bg-gray-50 flex items-center gap-2">
               <Eye size={16} />
               Compare
             </button>
@@ -1561,17 +1561,17 @@ Root cause was an unaligned memory allocation in the gateway driver.
         {currentStep === 0 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {workflowState === 'idle' && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center shadow-sm">
-                 <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner">
+              <div className="panel-card rounded-[28px] px-6 py-8 sm:px-8 sm:py-10 text-center">
+                 <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-[22px] flex items-center justify-center mx-auto mb-6 shadow-inner">
                    <ShieldCheck size={40} />
                  </div>
                  <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Static Analysis Stage</h2>
-                 <p className="text-gray-500 mt-3 mb-10 max-w-lg mx-auto leading-relaxed">
+                 <p className="text-gray-500 mt-3 mb-8 max-w-lg mx-auto leading-relaxed">
                    The module is ready for static code analysis. We will run Astree to verify runtime errors and assertion violations.
                  </p>
                  <button 
                    onClick={() => startAnalysis(feature?.name || '')}
-                   className="px-10 py-4 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/20 transition-all flex items-center gap-3 mx-auto"
+                   className="px-8 py-3.5 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/20 transition-all flex items-center gap-3 mx-auto"
                  >
                    <Play size={20} fill="currentColor" />
                    Start Static Analysis
@@ -1580,8 +1580,8 @@ Root cause was an unaligned memory allocation in the gateway driver.
             )}
 
             {workflowState === 'analyzing_astree' && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-16 flex flex-col items-center justify-center text-center shadow-sm">
-                <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
+              <div className="panel-card rounded-[28px] px-6 py-8 sm:px-8 sm:py-10 flex flex-col items-center justify-center text-center">
+                <div className="w-14 h-14 bg-indigo-50 rounded-[20px] flex items-center justify-center mb-5">
                   <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">Running Astree Static Analysis</h3>
@@ -1592,8 +1592,8 @@ Root cause was an unaligned memory allocation in the gateway driver.
             )}
 
             {workflowState === 'analyzing_ai' && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-16 flex flex-col items-center justify-center text-center shadow-sm">
-                <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 relative">
+              <div className="panel-card rounded-[28px] px-6 py-8 sm:px-8 sm:py-10 flex flex-col items-center justify-center text-center">
+                <div className="w-14 h-14 bg-emerald-50 rounded-[20px] flex items-center justify-center mb-5 relative">
                   <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <CheckCircle className="text-emerald-500" size={20} />
@@ -1607,7 +1607,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
             )}            {workflowState === 'review' && (
               <div className="space-y-6">
                 {/* Slim Action Bar */}
-                <div className="bg-white border border-gray-200 rounded-xl px-5 py-3 flex items-center justify-between shadow-sm">
+                <div className="panel-card rounded-[22px] px-4 py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <span className="text-sm font-bold text-gray-900">Review Required</span>
                     <span className="ml-2 text-xs text-gray-400">Decide if this feature proceeds to Unit Testing.</span>
@@ -1628,9 +1628,9 @@ Root cause was an unaligned memory allocation in the gateway driver.
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {/* Workspace / Relevant Files */}
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[600px] overflow-hidden">
+                  <div className="panel-card rounded-[26px] flex flex-col h-[560px] overflow-hidden">
                     <FileViewer files={staticFiles} />
                   </div>
 
@@ -1649,19 +1649,19 @@ Root cause was an unaligned memory allocation in the gateway driver.
         )}
 
         {currentStep === 1 && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {unitTestSubStep === 'idle' && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center shadow-sm">
-                 <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner">
+              <div className="panel-card rounded-[28px] px-6 py-8 sm:px-8 sm:py-10 text-center">
+                 <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-[22px] flex items-center justify-center mx-auto mb-6 shadow-inner">
                    <ShieldCheck size={40} />
                  </div>
                  <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Unit Testing Stage</h2>
-                 <p className="text-gray-500 mt-3 mb-10 max-w-lg mx-auto leading-relaxed">
+                 <p className="text-gray-500 mt-3 mb-8 max-w-lg mx-auto leading-relaxed">
                    The static analysis was successful. We will now perform unit testing using the Tessy toolchain to verify component logic.
                  </p>
                  <button 
                    onClick={startUnitTesting}
-                   className="px-10 py-4 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/20 transition-all flex items-center gap-3 mx-auto"
+                   className="px-8 py-3.5 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/20 transition-all flex items-center gap-3 mx-auto"
                  >
                    <Play size={20} fill="currentColor" />
                    Start Unit Testing Flow
@@ -1670,8 +1670,8 @@ Root cause was an unaligned memory allocation in the gateway driver.
             )}
 
             {(unitTestSubStep === 'fetching_files' || unitTestSubStep === 'running_tessy' || unitTestSubStep === 'generating_summary') && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-16 flex flex-col items-center justify-center text-center shadow-sm">
-                <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-8">
+              <div className="panel-card rounded-[28px] px-6 py-8 sm:px-8 sm:py-10 flex flex-col items-center justify-center text-center">
+                <div className="w-14 h-14 bg-indigo-50 rounded-[20px] flex items-center justify-center mb-6">
                   <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">
@@ -1696,16 +1696,16 @@ Root cause was an unaligned memory allocation in the gateway driver.
             {unitTestSubStep === 'review' && (
               <div className="space-y-6">
                 {/* Slim Action Header */}
-                <div className="bg-white border border-gray-200 rounded-xl px-5 py-3 shadow-sm">
+                <div className="panel-card rounded-[22px] px-4 py-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-6">
+                    <div className="flex flex-wrap items-center gap-4">
                       <div>
                         <span className="text-sm font-bold text-gray-900">Unit Testing Complete</span>
                         <span className="ml-2 text-xs text-gray-400">Review coverage before proceeding.</span>
                       </div>
                       <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Coverage</span>
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.18em]">Coverage</span>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className={`text-lg font-bold ${coverageScore < 85 ? 'text-amber-600' : 'text-emerald-600'}`}>
                             {coverageScore}%
@@ -1736,9 +1736,9 @@ Root cause was an unaligned memory allocation in the gateway driver.
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {/* Workspace / Relevant Files */}
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[600px] overflow-hidden">
+                  <div className="panel-card rounded-[26px] flex flex-col h-[560px] overflow-hidden">
                     <FileViewer files={unitTestFiles} />
                   </div>
 
@@ -1757,26 +1757,26 @@ Root cause was an unaligned memory allocation in the gateway driver.
         )}
 
         {currentStep === 2 && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {integrationState === 'idle' && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center shadow-sm">
-                 <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner">
+              <div className="panel-card rounded-[28px] px-6 py-8 sm:px-8 sm:py-10 text-center">
+                 <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-[22px] flex items-center justify-center mx-auto mb-6 shadow-inner">
                    <Layers size={40} />
                  </div>
                  <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Integration Stage</h2>
-                 <p className="text-gray-500 mt-3 mb-10 max-w-lg mx-auto leading-relaxed">
+                 <p className="text-gray-500 mt-3 mb-8 max-w-lg mx-auto leading-relaxed">
                    The unit tests have passed. We are now ready to integrate this feature into the MB.OS core environment.
                  </p>
                  <div className="flex items-center justify-center gap-4">
                    <button 
                      onClick={() => startIntegration(false)}
-                     className="px-8 py-4 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition-all"
+                     className="px-7 py-3.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition-all"
                    >
                      Test Failure Scenario
                    </button>
                    <button 
                      onClick={() => startIntegration(true)}
-                     className="px-10 py-4 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/20 transition-all flex items-center gap-3"
+                     className="px-8 py-3.5 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/20 transition-all flex items-center gap-3"
                    >
                      <Play size={20} fill="currentColor" />
                      Start Integration
@@ -1786,8 +1786,8 @@ Root cause was an unaligned memory allocation in the gateway driver.
             )}
 
             {integrationState === 'integrating' && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-16 flex flex-col items-center justify-center text-center shadow-sm">
-                <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mb-8">
+              <div className="panel-card rounded-[28px] px-6 py-8 sm:px-8 sm:py-10 flex flex-col items-center justify-center text-center">
+                <div className="w-14 h-14 bg-emerald-50 rounded-[20px] flex items-center justify-center mb-6">
                   <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">Integrating with MB.OS Core...</h3>
@@ -1799,17 +1799,17 @@ Root cause was an unaligned memory allocation in the gateway driver.
             )}
 
             {integrationState === 'passed' && (
-              <div className="bg-white rounded-2xl border border-emerald-100 p-16 text-center shadow-sm border-t-4 border-t-emerald-500">
-                 <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner">
+              <div className="panel-card rounded-[28px] border border-emerald-100 px-6 py-8 sm:px-8 sm:py-10 text-center border-t-4 border-t-emerald-500">
+                 <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-[22px] flex items-center justify-center mx-auto mb-6 shadow-inner">
                    <CheckCircle size={40} />
                  </div>
                  <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Integration Successful</h2>
-                 <p className="text-gray-500 mt-3 mb-10 max-w-lg mx-auto leading-relaxed">
+                 <p className="text-gray-500 mt-3 mb-8 max-w-lg mx-auto leading-relaxed">
                    The feature has been successfully integrated and verified. It is now ready for deployment to the main branch.
                  </p>
                  <button 
                    onClick={() => navigate('/')}
-                   className="px-10 py-4 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/20 transition-all"
+                   className="px-8 py-3.5 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/20 transition-all"
                  >
                    Complete & Return to Dashboard
                  </button>
@@ -1819,12 +1819,12 @@ Root cause was an unaligned memory allocation in the gateway driver.
             {integrationState === 'failed' && (
               <div className="space-y-6">
                 {/* Top Action Bar */}
-                <div className="bg-white border border-gray-200 rounded-2xl p-6 flex items-center justify-between shadow-sm">
+                <div className="panel-card rounded-[24px] p-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                   <div>
                     <h4 className="font-bold text-gray-900">Integration Failed</h4>
                     <p className="text-xs text-gray-500 mt-0.5">Review the AI recommendations below and decide how to proceed.</p>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <button 
                       onClick={() => setIntegrationState('idle')}
                       className="px-6 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-bold rounded-xl transition-all flex items-center gap-2"
@@ -1841,9 +1841,9 @@ Root cause was an unaligned memory allocation in the gateway driver.
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {/* Workspace / Relevant Files */}
-                  <div className="bg-white rounded-2xl border border-red-100 shadow-sm flex flex-col h-[600px] overflow-hidden border-t-4 border-t-red-500">
+                  <div className="panel-card rounded-[26px] border border-red-100 flex flex-col h-[560px] overflow-hidden border-t-4 border-t-red-500">
                     <FileViewer files={integrationFiles} />
                   </div>
 

@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
-import { 
-  FileText, Code2, ShieldCheck, BarChart2, GitBranch, ArrowRight, Activity, 
-  Clock, Database, Layers, Cpu, Plus, Play, Trash2, Eye, AlertCircle, 
-  CheckCircle, Archive, RotateCcw, Filter, ListFilter, Calendar, Search, 
-  MoreVertical, ChevronRight, ExternalLink, Github, Box, X, Bot
+import React, { useEffect, useState } from 'react';
+import {
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  Bot,
+  Calendar,
+  CheckCircle,
+  Clock,
+  FileText,
+  GitBranch,
+  Github,
+  ListFilter,
+  MoreVertical,
+  Play,
+  Plus,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-// --- Types & Enums ---
 
 export enum FeatureStatus {
   READY_FOR_STATIC_ANALYSIS = 'Ready for Static Code Analysis',
@@ -26,112 +38,148 @@ export interface Feature {
   status: FeatureStatus;
   branchName: string;
   repository: string;
-  checks: string; // e.g. "6 / 6"
-  coverage: string; // e.g. "88% / 92%"
+  checks: string;
+  coverage: string;
   lastUpdated: string;
 }
 
-// --- Components ---
+type DashboardTab = 'sessions' | 'work-items';
+type PanelView = 'new-module' | 'reports';
+type StatusFilter = 'all' | 'risk' | 'active' | 'complete';
 
-const StatCard: React.FC<{ icon: React.ReactNode; value: string | number; label: string; iconBgClass?: string; iconColorClass?: string }> = ({ icon, value, label, iconBgClass = 'bg-blue-50', iconColorClass = 'text-blue-500' }) => (
-  <div className="bg-white p-5 rounded-2xl border border-gray-200 flex items-center justify-between">
-    <div className="flex flex-col gap-1">
-      <div className="text-xs font-semibold text-gray-500">{label}</div>
-      <div className="text-2xl font-bold text-gray-900 mt-1">{value}</div>
-    </div>
-    <div className={`w-10 h-10 ${iconBgClass} ${iconColorClass} rounded-xl flex items-center justify-center`}>
-      {icon}
+const INITIAL_FEATURES: Feature[] = [
+  {
+    id: '1',
+    name: 'MonEmmBatTm',
+    description:
+      'Monitors the battery system for critical errors and requests a safe state if a persistent fault is detected.',
+    branchName: 'feat/battery-monitor',
+    repository: 'MonEmmBatTm',
+    status: FeatureStatus.READY_FOR_STATIC_ANALYSIS,
+    checks: '6 / 6',
+    coverage: '88% / 92%',
+    lastUpdated: '2 mins ago',
+  },
+  {
+    id: '2',
+    name: 'DcpChassis',
+    description:
+      'Processes vehicle dynamics signals including wheel speed, steering angle, torque requests, and ESP status.',
+    branchName: 'feat/chassis-control',
+    repository: 'DcpChassis',
+    status: FeatureStatus.STATIC_ANALYSIS_FAILED,
+    checks: '4 / 6',
+    coverage: '72% / 85%',
+    lastUpdated: '1 hour ago',
+  },
+  {
+    id: '3',
+    name: 'DtrTqshRbs',
+    description: 'Torque request processing with robustness validation across failure envelopes.',
+    branchName: 'feat/torque-robustness',
+    repository: 'DtrTqshRbs',
+    status: FeatureStatus.UNIT_TESTING_PASSED,
+    checks: '6 / 6',
+    coverage: '95% / 95%',
+    lastUpdated: '3 hours ago',
+  },
+  {
+    id: '4',
+    name: 'SrsVReqVmsl',
+    description: 'Vehicle requirement and speed limit orchestration for integration sign-off.',
+    branchName: 'feat/speed-limit',
+    repository: 'SrsVReqVmsl',
+    status: FeatureStatus.INTEGRATION_COMPLETE,
+    checks: '6 / 6',
+    coverage: '98% / 98%',
+    lastUpdated: 'Yesterday',
+  },
+];
+
+const riskStatuses = new Set<FeatureStatus>([
+  FeatureStatus.STATIC_ANALYSIS_FAILED,
+  FeatureStatus.UNIT_TESTING_FAILED,
+  FeatureStatus.INTEGRATION_FAILED,
+]);
+
+const activeStatuses = new Set<FeatureStatus>([
+  FeatureStatus.READY_FOR_STATIC_ANALYSIS,
+  FeatureStatus.STATIC_ANALYSIS_PASSED,
+  FeatureStatus.UNIT_TESTING_PASSED,
+]);
+
+const getStatusMeta = (status: FeatureStatus) => {
+  switch (status) {
+    case FeatureStatus.READY_FOR_STATIC_ANALYSIS:
+      return {
+        tone: 'bg-amber-50 text-amber-900 border border-amber-200/80',
+        icon: <Activity size={12} className="text-amber-600" />,
+      };
+    case FeatureStatus.STATIC_ANALYSIS_FAILED:
+    case FeatureStatus.UNIT_TESTING_FAILED:
+    case FeatureStatus.INTEGRATION_FAILED:
+      return {
+        tone: 'bg-rose-50 text-rose-900 border border-rose-200/80',
+        icon: <AlertCircle size={12} className="text-rose-600" />,
+      };
+    case FeatureStatus.STATIC_ANALYSIS_PASSED:
+    case FeatureStatus.UNIT_TESTING_PASSED:
+      return {
+        tone: 'bg-sky-50 text-sky-900 border border-sky-200/80',
+        icon: <ArrowRight size={12} className="text-sky-600" />,
+      };
+    case FeatureStatus.INTEGRATION_COMPLETE:
+      return {
+        tone: 'bg-emerald-50 text-emerald-900 border border-emerald-200/80',
+        icon: <CheckCircle size={12} className="text-emerald-600" />,
+      };
+  }
+};
+
+const StatCard: React.FC<{
+  label: string;
+  value: string | number;
+  detail: string;
+  icon: React.ReactNode;
+  accentClass: string;
+}> = ({ label, value, detail, icon, accentClass }) => (
+  <div className="panel-surface rounded-[28px] p-5">
+    <div className="flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</div>
+        <div className="mt-3 font-display text-3xl font-bold text-slate-950 [font-variant-numeric:tabular-nums]">
+          {value}
+        </div>
+        <p className="mt-2 text-sm text-slate-600">{detail}</p>
+      </div>
+      <div
+        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/70 ${accentClass}`}
+      >
+        {icon}
+      </div>
     </div>
   </div>
 );
 
 const StatusBadge: React.FC<{ status: FeatureStatus }> = ({ status }) => {
-  let colorClass = 'bg-gray-100 text-gray-800';
-  let icon = <Activity size={12} />;
-
-  switch (status) {
-    case FeatureStatus.READY_FOR_STATIC_ANALYSIS:
-      colorClass = 'bg-indigo-50 text-indigo-700 border border-indigo-100';
-      break;
-    case FeatureStatus.STATIC_ANALYSIS_FAILED:
-    case FeatureStatus.UNIT_TESTING_FAILED:
-    case FeatureStatus.INTEGRATION_FAILED:
-      colorClass = 'bg-red-50 text-red-700 border border-red-100';
-      icon = <AlertCircle size={12} />;
-      break;
-    case FeatureStatus.STATIC_ANALYSIS_PASSED:
-    case FeatureStatus.UNIT_TESTING_PASSED:
-      colorClass = 'bg-blue-50 text-blue-700 border border-blue-100';
-      icon = <ArrowRight size={12} />;
-      break;
-    case FeatureStatus.INTEGRATION_COMPLETE:
-      colorClass = 'bg-emerald-50 text-emerald-700 border border-emerald-100';
-      icon = <CheckCircle size={12} />;
-      break;
-  }
+  const meta = getStatusMeta(status);
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${colorClass}`}>
-      {icon}
-      {status}
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${meta.tone}`}>
+      {meta.icon}
+      <span>{status}</span>
     </span>
   );
 };
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'sessions' | 'work-items'>('sessions');
-  const [features, setFeatures] = useState<Feature[]>([
-    { 
-      id: '1', 
-      name: 'MonEmmBatTm', 
-      description: 'Monitors the battery system for critical errors and ensures a "Safe State" is requested if a persistent fault is detected.',
-      branchName: 'feat/battery-monitor', 
-      repository: 'MonEmmBatTm',
-      status: FeatureStatus.READY_FOR_STATIC_ANALYSIS, 
-      checks: '6 / 6',
-      coverage: '88% / 92%',
-      lastUpdated: '2 mins ago' 
-    },
-    { 
-      id: '2', 
-      name: 'DcpChassis', 
-      description: 'Processes signals related to vehicle dynamics, such as wheel speeds, steering angles, torque requests, and ESP status.',
-      branchName: 'feat/chassis-control', 
-      repository: 'DcpChassis',
-      status: FeatureStatus.STATIC_ANALYSIS_FAILED, 
-      checks: '4 / 6',
-      coverage: '72% / 85%',
-      lastUpdated: '1 hour ago' 
-    },
-    { 
-      id: '3', 
-      name: 'DtrTqshRbs', 
-      description: 'Torque request processing and robustness.',
-      branchName: 'feat/torque-robustness', 
-      repository: 'DtrTqshRbs',
-      status: FeatureStatus.UNIT_TESTING_PASSED, 
-      checks: '6 / 6',
-      coverage: '95% / 95%',
-      lastUpdated: '3 hours ago' 
-    },
-    { 
-      id: '4', 
-      name: 'SrsVReqVmsl', 
-      description: 'Vehicle requirement and speed limit processing.',
-      branchName: 'feat/speed-limit', 
-      repository: 'SrsVReqVmsl',
-      status: FeatureStatus.INTEGRATION_COMPLETE, 
-      checks: '6 / 6',
-      coverage: '98% / 98%',
-      lastUpdated: 'Yesterday' 
-    },
-  ]);
-
-  // Panel State (replaces modal)
+  const [activeTab, setActiveTab] = useState<DashboardTab>('sessions');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [features, setFeatures] = useState<Feature[]>(INITIAL_FEATURES);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [panelView, setPanelView] = useState<'new-module' | 'reports'>('new-module');
-  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  const [panelView, setPanelView] = useState<PanelView>('new-module');
   const [modalStep, setModalStep] = useState(1);
   const [newFeature, setNewFeature] = useState({
     name: '',
@@ -139,320 +187,604 @@ export const Dashboard: React.FC = () => {
     ecuTarget: 'powertrain',
     repository: 'MonEmmBatTm',
     branch: '',
-    baseBranch: 'develop'
+    baseBranch: 'develop',
   });
+
+  useEffect(() => {
+    if (!isPanelOpen) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsPanelOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPanelOpen]);
+
+  const filteredFeatures = features.filter((feature) => {
+    const normalizedQuery = searchTerm.trim().toLowerCase();
+    const matchesSearch =
+      !normalizedQuery ||
+      [
+        feature.name,
+        feature.description,
+        feature.repository,
+        feature.branchName,
+        feature.status,
+      ].some((value) => value.toLowerCase().includes(normalizedQuery));
+
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'risk' && riskStatuses.has(feature.status)) ||
+      (statusFilter === 'active' && activeStatuses.has(feature.status)) ||
+      (statusFilter === 'complete' && feature.status === FeatureStatus.INTEGRATION_COMPLETE);
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const atRiskCount = features.filter((feature) => riskStatuses.has(feature.status)).length;
+  const integrationCompleteCount = features.filter(
+    (feature) => feature.status === FeatureStatus.INTEGRATION_COMPLETE
+  ).length;
+
+  const handleOpenPanel = (view: PanelView) => {
+    setPanelView(view);
+    setIsPanelOpen(true);
+  };
 
   const handleAddFeature = () => {
     const feature: Feature = {
       id: Date.now().toString(),
-      name: newFeature.name,
-      description: newFeature.description,
-      branchName: newFeature.branch,
+      name: newFeature.name.trim(),
+      description: newFeature.description.trim(),
+      branchName: newFeature.branch.trim(),
       repository: newFeature.repository,
       status: FeatureStatus.READY_FOR_STATIC_ANALYSIS,
       checks: '0 / 6',
       coverage: '0 / 0',
       lastUpdated: 'Just now',
     };
-    setFeatures([feature, ...features]);
+
+    setFeatures((currentFeatures) => [feature, ...currentFeatures]);
     setIsPanelOpen(false);
     setModalStep(1);
-    setNewFeature({ name: '', description: '', ecuTarget: 'powertrain', repository: 'MonEmmBatTm', branch: '', baseBranch: 'develop' });
+    setNewFeature({
+      name: '',
+      description: '',
+      ecuTarget: 'powertrain',
+      repository: 'MonEmmBatTm',
+      branch: '',
+      baseBranch: 'develop',
+    });
   };
 
   const handleDeleteFeature = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this feature? This action cannot be undone.")) {
-      setFeatures(features.filter(f => f.id !== id));
+    if (window.confirm('Are you sure you want to delete this module? This action cannot be undone.')) {
+      setFeatures((currentFeatures) => currentFeatures.filter((feature) => feature.id !== id));
     }
   };
 
-  const renderActions = (feature: Feature) => {
-    return (
-      <div className="flex items-center justify-end gap-1">
-        {feature.status === FeatureStatus.READY_FOR_STATIC_ANALYSIS && (
-          <button onClick={() => navigate(`/workflow/${feature.id}`)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Start V-Cycle">
-            <Play size={18} />
-          </button>
-        )}
-        {(feature.status === FeatureStatus.STATIC_ANALYSIS_FAILED || feature.status === FeatureStatus.UNIT_TESTING_FAILED || feature.status === FeatureStatus.INTEGRATION_FAILED) && (
-          <button onClick={() => navigate(`/workflow/${feature.id}`)} className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Retry / Fix">
-            <RotateCcw size={18} />
-          </button>
-        )}
-        {feature.status === FeatureStatus.INTEGRATION_COMPLETE && (
-          <button className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="View Final Report">
-            <FileText size={18} />
-          </button>
-        )}
-        <button className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
-          <MoreVertical size={18} />
-        </button>
-      </div>
-    );
-  };
-
-  return (
-    <div className="flex flex-col gap-8 max-w-7xl mx-auto pb-12 w-full h-full overflow-y-auto relative">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">V-Cycle AI Orchestrator</h1>
-        </div>
-        {/* 3-dot menu */}
-        <div className="relative">
-          <button
-            id="header-menu-btn"
-            onClick={() => setHeaderMenuOpen(v => !v)}
-            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            aria-label="More actions"
-          >
-            <MoreVertical size={20} />
-          </button>
-          {headerMenuOpen && (
-            <>
-              <div className="fixed inset-0 z-30" onClick={() => setHeaderMenuOpen(false)} />
-              <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-40 overflow-hidden">
-                <button
-                  onClick={() => { setPanelView('new-module'); setIsPanelOpen(true); setHeaderMenuOpen(false); }}
-                  className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5"
-                >
-                  <Plus size={14} className="text-indigo-600" />
-                  New Module
-                </button>
-                <button
-                  onClick={() => { setPanelView('reports'); setIsPanelOpen(true); setHeaderMenuOpen(false); }}
-                  className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5"
-                >
-                  <FileText size={14} className="text-gray-500" />
-                  View Reports
-                </button>
-              </div>
-            </>
+  const renderActions = (feature: Feature) => (
+    <div className="flex items-center justify-end gap-1">
+      {(feature.status === FeatureStatus.READY_FOR_STATIC_ANALYSIS ||
+        riskStatuses.has(feature.status)) && (
+        <button
+          type="button"
+          onClick={() => navigate(`/workflow/${feature.id}`)}
+          aria-label={
+            feature.status === FeatureStatus.READY_FOR_STATIC_ANALYSIS
+              ? `Start workflow for ${feature.name}`
+              : `Retry workflow for ${feature.name}`
+          }
+          className="focus-ring rounded-2xl border border-white/70 bg-white/90 p-2.5 text-slate-700 transition-colors hover:bg-slate-950 hover:text-white"
+          title={feature.status === FeatureStatus.READY_FOR_STATIC_ANALYSIS ? 'Start V-Cycle' : 'Retry / Fix'}
+        >
+          {feature.status === FeatureStatus.READY_FOR_STATIC_ANALYSIS ? (
+            <Play size={17} aria-hidden="true" />
+          ) : (
+            <RotateCcw size={17} aria-hidden="true" />
           )}
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard icon={<Activity size={20} />} value={features.length} label="Active Modules" iconBgClass="bg-blue-50 text-blue-500" />
-        <StatCard icon={<Bot size={20} />} value="7 / 7" label="Specialist Agents Online" iconBgClass="bg-emerald-50 text-emerald-500" />
-        <StatCard icon={<ShieldCheck size={20} />} value="84%" label="Avg Preflight Score" iconBgClass="bg-purple-50 text-purple-500" />
-        <StatCard icon={<Github size={20} />} value={12} label="GitHub Syncs" iconBgClass="bg-amber-50 text-amber-500" />
-      </div>
-
-      {/* Tabs & Filters */}
-      <div className="space-y-4">
-        <div className="flex items-center border-b border-gray-200 gap-6">
-          <button 
-            onClick={() => setActiveTab('sessions')}
-            className={`py-3 text-[13px] font-bold transition-all relative ${
-              activeTab === 'sessions' ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Modules
-            <span className={`ml-2 px-1.5 py-0.5 rounded-md text-[10px] ${activeTab === 'sessions' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>{features.length}</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('work-items')}
-            className={`py-3 text-[13px] font-bold transition-all relative ${
-              activeTab === 'work-items' ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Validation Tasks
-            <span className={`ml-2 px-1.5 py-0.5 rounded-md text-[10px] ${activeTab === 'work-items' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>0</span>
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F8FAFC] border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors">
-              <ListFilter size={14} className="text-gray-400" />
-              Filter
-            </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F8FAFC] border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors">
-              <Activity size={14} className="text-gray-400" />
-              Sort
-            </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F8FAFC] border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors">
-              <Calendar size={14} className="text-gray-400" />
-              Last 30 Days
-            </button>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              className="pl-9 pr-4 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500 w-64"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      {activeTab === 'sessions' ? (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-[0px_2px_4px_rgba(0,0,0,0.02)] overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-white text-gray-600 text-xs font-semibold border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3.5">Module</th>
-                <th className="px-6 py-3.5">Repository & Branch</th>
-                <th className="px-6 py-3.5">Quality Checks</th>
-                <th className="px-6 py-3.5">Coverage</th>
-                <th className="px-6 py-3.5">Status</th>
-                <th className="px-6 py-3.5 text-right w-32">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {features.map((feature) => (
-                <tr key={feature.id} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-gray-900 text-[13px]">{feature.name}</div>
-                    <div className="text-xs text-gray-500 mt-0.5 max-w-[200px] truncate" title={feature.description}>{feature.description}</div>
-                    <div className="flex items-center gap-1 text-[11px] text-gray-400 font-medium mt-1">
-                      <Clock size={10} /> {feature.lastUpdated}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col gap-1.5 align-start justify-center">
-                      <span className="text-xs text-gray-700 flex items-center gap-1.5 font-medium">
-                        <Github size={14} className="text-gray-400" />
-                        {feature.repository}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 text-gray-500 text-xs font-medium w-fit">
-                        <GitBranch size={12} className="text-gray-400" />
-                        {feature.branchName}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2.5 shadow-sm border border-gray-100 rounded-lg px-2.5 py-1.5 w-fit bg-white">
-                      {feature.checks.startsWith('6') ? (
-                        <CheckCircle size={14} className="text-emerald-500" />
-                      ) : (
-                        <X size={14} className="text-red-500" />
-                      )}
-                      <span className="font-semibold text-gray-700 text-xs">{feature.checks}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                       <div className="flex flex-col gap-0.5">
-                         <span className="text-[10px] font-semibold text-gray-400 uppercase">Actual</span>
-                         <span className="text-xs font-semibold text-gray-800">
-                           {feature.coverage.split(' / ')[0]}
-                         </span>
-                       </div>
-                      <span className="text-gray-300 mx-1">/</span>
-                      <div className="flex flex-col gap-0.5">
-                         <span className="text-[10px] font-semibold text-gray-400 uppercase">Target</span>
-                         <span className="text-xs font-medium text-gray-500">
-                           {feature.coverage.split(' / ')[1]}
-                         </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={feature.status} />
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {renderActions(feature)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      ) : (
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-16 flex flex-col items-center justify-center text-center">
-          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-5">
-            <CheckCircle size={32} className="text-gray-400" />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900">No Pending Validation Tasks</h3>
-          <p className="text-gray-500 mt-2 text-sm max-w-sm">All validation modules are currently running on schedule. Check back later for pending approvals.</p>
-        </div>
+        </button>
       )}
 
-      {/* Right Slide-In Panel */}
-      {isPanelOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px]"
-            onClick={() => setIsPanelOpen(false)}
-          />
-          {/* Panel */}
-          <div className="fixed right-0 top-0 h-full w-[420px] bg-white z-40 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-            {/* Panel Header */}
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                {/* Tab switcher */}
+      {feature.status === FeatureStatus.INTEGRATION_COMPLETE && (
+        <button
+          type="button"
+          aria-label={`View final report for ${feature.name}`}
+          className="focus-ring rounded-2xl border border-white/70 bg-white/90 p-2.5 text-slate-700 transition-colors hover:bg-slate-950 hover:text-white"
+          title="View Final Report"
+        >
+          <FileText size={17} aria-hidden="true" />
+        </button>
+      )}
+
+      <button
+        type="button"
+        onClick={() => handleDeleteFeature(feature.id)}
+        aria-label={`Delete ${feature.name}`}
+        className="focus-ring rounded-2xl border border-white/70 bg-white/90 p-2.5 text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-700"
+        title="Delete Module"
+      >
+        <X size={17} aria-hidden="true" />
+      </button>
+    </div>
+  );
+
+  const canContinueStepOne = newFeature.name.trim().length > 0 && newFeature.description.trim().length > 0;
+  const canContinueStepTwo = newFeature.branch.trim().length > 0;
+  const panelTitle = panelView === 'new-module' ? 'Create New Module' : 'Recent Reports';
+
+  return (
+    <>
+      <section className="panel-surface relative overflow-hidden rounded-[32px] p-5 sm:p-6 lg:p-8">
+        <div
+          aria-hidden="true"
+          className="absolute inset-y-0 right-0 w-full bg-[radial-gradient(circle_at_top_right,_rgba(177,31,41,0.14),_transparent_42%),radial-gradient(circle_at_bottom_right,_rgba(35,50,69,0.16),_transparent_36%)]"
+        />
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+              <ShieldCheck size={14} className="text-[#b11f29]" aria-hidden="true" />
+              Mercedes Validation & Release Readiness
+            </div>
+            <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-slate-950 [text-wrap:balance] sm:text-[3.35rem]">
+              V-Cycle Control Tower
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
+              A calmer interface for monitoring module health, launch readiness, and validation coverage without
+              burying operators in low-signal chrome.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <div className="rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm font-semibold text-slate-700">
+                {features.length} active modules
+              </div>
+              <div className="rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm font-semibold text-slate-700">
+                {atRiskCount} modules need attention
+              </div>
+              <div className="rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm font-semibold text-slate-700">
+                {integrationCompleteCount} modules fully integrated
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:w-[360px]">
+            <button
+              type="button"
+              onClick={() => handleOpenPanel('new-module')}
+              className="focus-ring rounded-[24px] bg-slate-950 px-4 py-4 text-left text-white shadow-[0_18px_32px_rgba(17,19,24,0.16)] transition-colors hover:bg-black"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/45">Launch</div>
+                  <div className="mt-2 font-display text-xl font-bold">Create Module</div>
+                </div>
+                <Plus size={18} aria-hidden="true" />
+              </div>
+              <p className="mt-4 text-sm leading-6 text-white/70">
+                Define the target ECU, branch, and repository before handing control to the specialists.
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleOpenPanel('reports')}
+              className="focus-ring rounded-[24px] border border-white/70 bg-white/80 px-4 py-4 text-left text-slate-900 transition-colors hover:bg-white"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Review</div>
+                  <div className="mt-2 font-display text-xl font-bold">Inspect Reports</div>
+                </div>
+                <FileText size={18} aria-hidden="true" />
+              </div>
+              <p className="mt-4 text-sm leading-6 text-slate-600">
+                Jump into module evidence, coverage summaries, and release notes from a single side panel.
+              </p>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-3 xl:grid-cols-4">
+        <StatCard
+          icon={<Activity size={20} className="text-white" aria-hidden="true" />}
+          value={features.length}
+          label="Active Modules"
+          detail="Modules currently moving through the V-cycle."
+          accentClass="bg-[linear-gradient(135deg,#12161d,#233245)] text-white"
+        />
+        <StatCard
+          icon={<Bot size={20} className="text-white" aria-hidden="true" />}
+          value="7 / 7"
+          label="Specialist Agents"
+          detail="All automation specialists online and ready."
+          accentClass="bg-[linear-gradient(135deg,#7a1017,#b11f29)] text-white"
+        />
+        <StatCard
+          icon={<ShieldCheck size={20} className="text-white" aria-hidden="true" />}
+          value="84%"
+          label="Preflight Score"
+          detail="Average readiness across static analysis and tests."
+          accentClass="bg-[linear-gradient(135deg,#615126,#8d6f32)] text-white"
+        />
+        <StatCard
+          icon={<Github size={20} className="text-white" aria-hidden="true" />}
+          value={12}
+          label="Repo Syncs"
+          detail="Repository updates pulled into this session today."
+          accentClass="bg-[linear-gradient(135deg,#31516c,#4e708c)] text-white"
+        />
+      </section>
+
+      <section className="panel-surface rounded-[30px] p-4 sm:p-5">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Command View</div>
+              <h2 className="mt-2 font-display text-2xl font-bold text-slate-950">Module Sessions</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                Focus the list by risk profile or search across branch, repository, and module metadata.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="inline-flex rounded-full border border-white/70 bg-white/80 p-1">
                 <button
-                  onClick={() => setPanelView('new-module')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                    panelView === 'new-module' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:text-gray-700'
+                  type="button"
+                  onClick={() => setActiveTab('sessions')}
+                  className={`focus-ring rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                    activeTab === 'sessions'
+                      ? 'bg-slate-950 text-white shadow-[0_10px_24px_rgba(17,19,24,0.16)]'
+                      : 'text-slate-500 hover:text-slate-950'
                   }`}
                 >
-                  New Module
+                  Modules
                 </button>
                 <button
-                  onClick={() => setPanelView('reports')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                    panelView === 'reports' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:text-gray-700'
+                  type="button"
+                  onClick={() => setActiveTab('work-items')}
+                  className={`focus-ring rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                    activeTab === 'work-items'
+                      ? 'bg-slate-950 text-white shadow-[0_10px_24px_rgba(17,19,24,0.16)]'
+                      : 'text-slate-500 hover:text-slate-950'
                   }`}
                 >
-                  Reports
+                  Validation Tasks
                 </button>
               </div>
-              <button onClick={() => setIsPanelOpen(false)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                <X size={18} />
+
+              <button
+                type="button"
+                onClick={() => handleOpenPanel('reports')}
+                className="focus-ring inline-flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-950 hover:text-white"
+              >
+                <MoreVertical size={16} aria-hidden="true" />
+                More Actions
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: 'all' as const, label: 'All Modules' },
+                { key: 'risk' as const, label: 'Needs Attention' },
+                { key: 'active' as const, label: 'In Progress' },
+                { key: 'complete' as const, label: 'Integrated' },
+              ].map((filter) => (
+                <button
+                  key={filter.key}
+                  type="button"
+                  onClick={() => setStatusFilter(filter.key)}
+                  className={`focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                    statusFilter === filter.key
+                      ? 'bg-[#b11f29] text-white shadow-[0_14px_26px_rgba(177,31,41,0.24)]'
+                      : 'border border-white/70 bg-white/70 text-slate-600 hover:bg-white hover:text-slate-950'
+                  }`}
+                >
+                  <ListFilter size={15} aria-hidden="true" />
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-600">
+                <Calendar size={16} aria-hidden="true" />
+                Last 30 days
+              </div>
+              <div className="relative min-w-0 sm:w-80">
+                <label htmlFor="module-search" className="sr-only">
+                  Search modules
+                </label>
+                <Search
+                  className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                  aria-hidden="true"
+                />
+                <input
+                  id="module-search"
+                  name="moduleSearch"
+                  type="search"
+                  autoComplete="off"
+                  placeholder="Search modules…"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  className="focus-ring w-full rounded-full border border-white/80 bg-white/90 py-3 pl-11 pr-4 text-sm placeholder:text-slate-400"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {activeTab === 'sessions' ? (
+        filteredFeatures.length > 0 ? (
+          <>
+            <div className="grid gap-4 md:hidden">
+              {filteredFeatures.map((feature) => (
+                <article key={feature.id} className="panel-surface rounded-[26px] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="font-display text-xl font-bold text-slate-950">{feature.name}</h3>
+                      <p className="mt-2 break-words text-sm leading-6 text-slate-600">{feature.description}</p>
+                    </div>
+                    <StatusBadge status={feature.status} />
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-2xl border border-white/70 bg-white/80 p-3">
+                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Repository</div>
+                      <div className="mt-2 flex items-center gap-2 font-semibold text-slate-900">
+                        <Github size={14} className="text-slate-400" aria-hidden="true" />
+                        <span className="min-w-0 truncate">{feature.repository}</span>
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-white/70 bg-white/80 p-3">
+                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Branch</div>
+                      <div className="mt-2 flex items-center gap-2 font-mono text-xs font-semibold text-slate-900">
+                        <GitBranch size={14} className="text-slate-400" aria-hidden="true" />
+                        <span className="min-w-0 truncate">{feature.branchName}</span>
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-white/70 bg-white/80 p-3">
+                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Checks</div>
+                      <div className="mt-2 font-semibold text-slate-900 [font-variant-numeric:tabular-nums]">
+                        {feature.checks}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-white/70 bg-white/80 p-3">
+                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Coverage</div>
+                      <div className="mt-2 font-semibold text-slate-900 [font-variant-numeric:tabular-nums]">
+                        {feature.coverage}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500">
+                      <Clock size={14} aria-hidden="true" />
+                      {feature.lastUpdated}
+                    </div>
+                    {renderActions(feature)}
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <section className="panel-surface hidden overflow-hidden rounded-[30px] md:block">
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
+                  <thead className="bg-white/65 text-slate-500">
+                    <tr>
+                      <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em]">Module</th>
+                      <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em]">Repository & Branch</th>
+                      <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em]">Checks</th>
+                      <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em]">Coverage</th>
+                      <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em]">Status</th>
+                      <th className="px-5 py-3.5 text-right text-[11px] font-bold uppercase tracking-[0.18em]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredFeatures.map((feature) => (
+                      <tr
+                        key={feature.id}
+                        className="border-t border-white/80 transition-colors hover:bg-white/55"
+                      >
+                        <td className="px-5 py-4 align-top">
+                          <div className="min-w-0">
+                            <div className="font-display text-lg font-bold text-slate-950">{feature.name}</div>
+                            <p className="mt-1 max-w-sm text-sm leading-6 text-slate-600">{feature.description}</p>
+                            <div className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-slate-500">
+                              <Clock size={13} aria-hidden="true" />
+                              {feature.lastUpdated}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 align-top">
+                          <div className="flex min-w-0 flex-col gap-3">
+                            <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+                              <Github size={15} className="text-slate-400" aria-hidden="true" />
+                              <span className="min-w-0 truncate">{feature.repository}</span>
+                            </div>
+                            <div className="inline-flex items-center gap-2 font-mono text-xs font-semibold text-slate-500">
+                              <GitBranch size={14} className="text-slate-400" aria-hidden="true" />
+                              <span className="min-w-0 truncate">{feature.branchName}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 align-top">
+                          <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-2 font-semibold text-slate-900 [font-variant-numeric:tabular-nums]">
+                            {feature.checks.startsWith('6') ? (
+                              <CheckCircle size={15} className="text-emerald-600" aria-hidden="true" />
+                            ) : (
+                              <AlertCircle size={15} className="text-rose-600" aria-hidden="true" />
+                            )}
+                            {feature.checks}
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 align-top">
+                          <div className="grid gap-1 text-sm [font-variant-numeric:tabular-nums]">
+                            <div className="font-semibold text-slate-950">{feature.coverage.split(' / ')[0]} actual</div>
+                            <div className="text-slate-500">{feature.coverage.split(' / ')[1]} target</div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 align-top">
+                          <StatusBadge status={feature.status} />
+                        </td>
+                        <td className="px-5 py-4 align-top text-right">{renderActions(feature)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </>
+        ) : (
+          <section className="panel-surface rounded-[32px] p-10 text-center">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_20px_36px_rgba(17,19,24,0.16)]">
+              <Search size={28} aria-hidden="true" />
+            </div>
+            <h3 className="mt-5 font-display text-2xl font-bold text-slate-950">No modules match this view</h3>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+              Adjust the search term or filter selection to widen the result set.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('all');
+              }}
+              className="focus-ring mt-6 inline-flex items-center gap-2 rounded-full bg-[#b11f29] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#981822]"
+            >
+              Reset Filters
+            </button>
+          </section>
+        )
+      ) : (
+        <section className="panel-surface rounded-[32px] p-10 text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(135deg,#12161d,#233245)] text-white shadow-[0_20px_36px_rgba(17,19,24,0.18)]">
+            <CheckCircle size={28} aria-hidden="true" />
+          </div>
+          <h3 className="mt-5 font-display text-2xl font-bold text-slate-950">No Pending Validation Tasks</h3>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+            The current schedule is clear. Check back later for approvals, escalations, or manual validation work.
+          </p>
+        </section>
+      )}
+
+      {isPanelOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]"
+            onClick={() => setIsPanelOpen(false)}
+          />
+
+          <aside
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dashboard-panel-title"
+            className="panel-surface fixed right-0 top-0 z-50 flex h-full w-full max-w-[430px] flex-col [overscroll-behavior:contain]"
+          >
+            <div className="flex items-start justify-between border-b border-white/80 px-6 py-5">
+              <div className="min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                  {panelView === 'new-module' ? 'Module Intake' : 'Evidence Review'}
+                </div>
+                <h2 id="dashboard-panel-title" className="mt-2 font-display text-2xl font-bold text-slate-950">
+                  {panelTitle}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPanelOpen(false)}
+                aria-label="Close panel"
+                className="focus-ring rounded-full border border-white/70 bg-white/80 p-2 text-slate-500 transition-colors hover:bg-white hover:text-slate-950"
+              >
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
 
-            {/* Panel Body */}
-            <div className="flex-1 overflow-y-auto">
-              {panelView === 'new-module' && (
-                <div className="p-6 space-y-5">
-                  {/* Step indicator */}
-                  <div className="flex items-center gap-2 mb-2">
-                    {[1, 2, 3].map(step => (
-                      <div key={step} className={`flex-1 h-1 rounded-full transition-colors ${
-                        step <= modalStep ? 'bg-[#2824D6]' : 'bg-gray-100'
-                      }`} />
-                    ))}
+            <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-6 py-6">
+              {panelView === 'new-module' ? (
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      {[1, 2, 3].map((step) => (
+                        <div
+                          key={step}
+                          className={`h-1.5 flex-1 rounded-full transition-colors ${
+                            step <= modalStep ? 'bg-[#b11f29]' : 'bg-slate-200'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                      Step {modalStep} of 3
+                    </p>
                   </div>
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                    Step {modalStep} of 3 — {modalStep === 1 ? 'Module Definition' : modalStep === 2 ? 'GitHub Branch' : 'Review'}
-                  </p>
 
                   {modalStep === 1 && (
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       <div>
-                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Module Name</label>
+                        <label
+                          htmlFor="module-name"
+                          className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400"
+                        >
+                          Module Name
+                        </label>
                         <input
+                          id="module-name"
+                          name="moduleName"
                           type="text"
-                          placeholder="e.g. Powertrain Control Module"
+                          autoComplete="off"
+                          placeholder="Powertrain Control Module…"
                           value={newFeature.name}
-                          onChange={(e) => setNewFeature({ ...newFeature, name: e.target.value })}
-                          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          onChange={(event) =>
+                            setNewFeature((current) => ({ ...current, name: event.target.value }))
+                          }
+                          className="focus-ring w-full rounded-3xl border border-white/80 bg-white/90 px-4 py-3 text-sm placeholder:text-slate-400"
                         />
                       </div>
+
                       <div>
-                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Description</label>
+                        <label
+                          htmlFor="module-description"
+                          className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400"
+                        >
+                          Description
+                        </label>
                         <textarea
-                          placeholder="Brief description of the ECU module..."
+                          id="module-description"
+                          name="moduleDescription"
+                          autoComplete="off"
+                          placeholder="Describe the ECU scope, safety goal, and validation intent…"
                           value={newFeature.description}
-                          onChange={(e) => setNewFeature({ ...newFeature, description: e.target.value })}
-                          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-[100px] resize-none"
+                          onChange={(event) =>
+                            setNewFeature((current) => ({ ...current, description: event.target.value }))
+                          }
+                          className="focus-ring min-h-[140px] w-full resize-none rounded-3xl border border-white/80 bg-white/90 px-4 py-3 text-sm leading-6 placeholder:text-slate-400"
                         />
                       </div>
+
                       <div>
-                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">ECU Target</label>
+                        <label
+                          htmlFor="ecu-target"
+                          className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400"
+                        >
+                          ECU Target
+                        </label>
                         <select
+                          id="ecu-target"
+                          name="ecuTarget"
                           value={newFeature.ecuTarget}
-                          onChange={(e) => setNewFeature({ ...newFeature, ecuTarget: e.target.value })}
-                          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          onChange={(event) =>
+                            setNewFeature((current) => ({ ...current, ecuTarget: event.target.value }))
+                          }
+                          className="focus-ring w-full rounded-3xl border border-white/80 bg-white/90 px-4 py-3 text-sm"
                         >
                           <option value="adas">ADAS ECU</option>
                           <option value="powertrain">Powertrain Control Module</option>
@@ -464,13 +796,22 @@ export const Dashboard: React.FC = () => {
                   )}
 
                   {modalStep === 2 && (
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       <div>
-                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Repository</label>
+                        <label
+                          htmlFor="module-repository"
+                          className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400"
+                        >
+                          Repository
+                        </label>
                         <select
+                          id="module-repository"
+                          name="moduleRepository"
                           value={newFeature.repository}
-                          onChange={(e) => setNewFeature({ ...newFeature, repository: e.target.value })}
-                          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          onChange={(event) =>
+                            setNewFeature((current) => ({ ...current, repository: event.target.value }))
+                          }
+                          className="focus-ring w-full rounded-3xl border border-white/80 bg-white/90 px-4 py-3 text-sm"
                         >
                           <option value="MonEmmBatTm">org/MonEmmBatTm</option>
                           <option value="DcpChassis">org/DcpChassis</option>
@@ -478,22 +819,44 @@ export const Dashboard: React.FC = () => {
                           <option value="SrsVReqVmsl">org/SrsVReqVmsl</option>
                         </select>
                       </div>
+
                       <div>
-                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Feature Branch</label>
+                        <label
+                          htmlFor="feature-branch"
+                          className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400"
+                        >
+                          Feature Branch
+                        </label>
                         <input
+                          id="feature-branch"
+                          name="featureBranch"
                           type="text"
-                          placeholder="e.g. feat/acc-logic"
+                          autoComplete="off"
+                          spellCheck={false}
+                          placeholder="feat/acc-logic…"
                           value={newFeature.branch}
-                          onChange={(e) => setNewFeature({ ...newFeature, branch: e.target.value })}
-                          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-mono"
+                          onChange={(event) =>
+                            setNewFeature((current) => ({ ...current, branch: event.target.value }))
+                          }
+                          className="focus-ring w-full rounded-3xl border border-white/80 bg-white/90 px-4 py-3 font-mono text-sm placeholder:text-slate-400"
                         />
                       </div>
+
                       <div>
-                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Base Branch</label>
+                        <label
+                          htmlFor="base-branch"
+                          className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400"
+                        >
+                          Base Branch
+                        </label>
                         <select
+                          id="base-branch"
+                          name="baseBranch"
                           value={newFeature.baseBranch}
-                          onChange={(e) => setNewFeature({ ...newFeature, baseBranch: e.target.value })}
-                          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          onChange={(event) =>
+                            setNewFeature((current) => ({ ...current, baseBranch: event.target.value }))
+                          }
+                          className="focus-ring w-full rounded-3xl border border-white/80 bg-white/90 px-4 py-3 text-sm"
                         >
                           <option value="develop">develop</option>
                           <option value="main">main</option>
@@ -504,115 +867,121 @@ export const Dashboard: React.FC = () => {
                   )}
 
                   {modalStep === 3 && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-y-5 gap-x-6 bg-gray-50 p-5 rounded-xl border border-gray-100">
+                    <div className="space-y-5">
+                      <div className="grid gap-4 rounded-[28px] border border-white/80 bg-white/85 p-5 sm:grid-cols-2">
                         <div>
-                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Module Name</div>
-                          <div className="text-sm font-bold text-gray-900 mt-1">{newFeature.name || 'N/A'}</div>
+                          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Module Name</div>
+                          <div className="mt-2 text-sm font-semibold text-slate-950">{newFeature.name || 'N/A'}</div>
                         </div>
                         <div>
-                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ECU Type</div>
-                          <div className="flex items-center gap-1.5 text-emerald-700 text-xs font-bold mt-1">
-                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                            ECU Module
+                          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Repository</div>
+                          <div className="mt-2 text-sm font-semibold text-slate-950">{newFeature.repository}</div>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Description</div>
+                          <div className="mt-2 text-sm leading-6 text-slate-600">{newFeature.description || 'N/A'}</div>
+                        </div>
+                        <div>
+                          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Feature Branch</div>
+                          <div className="mt-2 font-mono text-xs font-semibold text-slate-950">
+                            {newFeature.branch || 'N/A'}
                           </div>
                         </div>
-                        <div className="col-span-2">
-                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Description</div>
-                          <div className="text-sm font-medium text-gray-600 mt-1">{newFeature.description || 'N/A'}</div>
-                        </div>
                         <div>
-                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Branch</div>
-                          <div className="text-sm font-bold text-indigo-700 mt-1 font-mono">{newFeature.branch || 'N/A'}</div>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Repository</div>
-                          <div className="text-sm font-bold text-gray-900 mt-1">{newFeature.repository}</div>
+                          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Base Branch</div>
+                          <div className="mt-2 text-sm font-semibold text-slate-950">{newFeature.baseBranch}</div>
                         </div>
                       </div>
-                      <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <Bot size={14} className="text-indigo-600" />
-                          <span className="text-xs font-bold text-indigo-900 uppercase tracking-widest">Agents</span>
-                        </div>
-                        <p className="text-xs text-indigo-700 font-medium leading-relaxed">
-                          Astree, Tessy, TC Summariser, Visualiser, Quality Report, and Integration Agents will be provisioned.
+
+                      <div className="rounded-[28px] bg-[linear-gradient(135deg,#12161d,#233245)] p-5 text-white">
+                        <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/45">Automation Plan</div>
+                        <p className="mt-3 text-sm leading-6 text-white/80">
+                          Astree, Tessy, summary, visualization, quality, and integration agents will be queued the
+                          moment the module is saved.
                         </p>
                       </div>
                     </div>
                   )}
                 </div>
-              )}
-
-              {panelView === 'reports' && (
-                <div className="p-6 space-y-4">
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Recent Reports</p>
-                  {features.map(f => (
-                    <div key={f.id} className="bg-gray-50 border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors cursor-pointer">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="text-[13px] font-bold text-gray-900">{f.name}</div>
-                          <div className="text-xs text-gray-500 mt-0.5 font-mono">{f.branchName}</div>
+              ) : (
+                <div className="space-y-4">
+                  {features.map((feature) => (
+                    <article key={feature.id} className="rounded-[28px] border border-white/80 bg-white/85 p-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <h3 className="font-display text-xl font-bold text-slate-950">{feature.name}</h3>
+                          <div className="mt-2 font-mono text-xs font-semibold text-slate-500">{feature.branchName}</div>
                         </div>
-                        <StatusBadge status={f.status} />
+                        <StatusBadge status={feature.status} />
                       </div>
-                      <div className="mt-3 grid grid-cols-2 gap-2">
+                      <p className="mt-4 text-sm leading-6 text-slate-600">{feature.description}</p>
+                      <div className="mt-5 grid grid-cols-2 gap-3">
                         <button
-                          onClick={() => navigate(`/workflow/${f.id}`)}
-                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                          type="button"
+                          onClick={() => navigate(`/workflow/${feature.id}`)}
+                          className="focus-ring inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-black"
                         >
-                          <Play size={12} /> Open Workflow
+                          <Play size={15} aria-hidden="true" />
+                          Open Workflow
                         </button>
-                        <button className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                          <FileText size={12} /> View Report
+                        <button
+                          type="button"
+                          className="focus-ring inline-flex items-center justify-center gap-2 rounded-full border border-white/80 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-950 hover:text-white"
+                        >
+                          <FileText size={15} aria-hidden="true" />
+                          View Report
                         </button>
                       </div>
-                    </div>
+                    </article>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Panel Footer */}
             {panelView === 'new-module' && (
-              <div className="p-5 bg-white border-t border-gray-100 flex items-center justify-between">
+              <div className="flex items-center justify-between border-t border-white/80 px-6 py-5">
                 <button
+                  type="button"
                   onClick={() => setIsPanelOpen(false)}
-                  className="text-sm font-bold text-gray-400 hover:text-gray-700 transition-colors"
+                  className="focus-ring rounded-full px-3 py-2 text-sm font-semibold text-slate-500 transition-colors hover:bg-white hover:text-slate-950"
                 >
                   Cancel
                 </button>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   {modalStep > 1 && (
                     <button
-                      onClick={() => setModalStep(modalStep - 1)}
-                      className="px-4 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+                      type="button"
+                      onClick={() => setModalStep((step) => step - 1)}
+                      className="focus-ring rounded-full border border-white/80 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-950 hover:text-white"
                     >
                       Back
                     </button>
                   )}
                   {modalStep < 3 ? (
                     <button
-                      onClick={() => setModalStep(modalStep + 1)}
-                      disabled={modalStep === 1 && !newFeature.name}
-                      className="px-5 py-2 bg-[#2824D6] text-white text-xs font-bold rounded-lg hover:bg-indigo-800 transition-colors disabled:opacity-50"
+                      type="button"
+                      onClick={() => setModalStep((step) => step + 1)}
+                      disabled={(modalStep === 1 && !canContinueStepOne) || (modalStep === 2 && !canContinueStepTwo)}
+                      className="focus-ring rounded-full bg-[#b11f29] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#981822] disabled:cursor-not-allowed disabled:bg-slate-300"
                     >
                       Continue
                     </button>
                   ) : (
                     <button
+                      type="button"
                       onClick={handleAddFeature}
-                      className="px-5 py-2 bg-[#2824D6] text-white text-xs font-bold rounded-lg hover:bg-indigo-800 flex items-center gap-1.5"
+                      className="focus-ring inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black"
                     >
-                      <Play size={13} /> Save & Start V-Cycle
+                      <Play size={15} aria-hidden="true" />
+                      Save & Start V-Cycle
                     </button>
                   )}
                 </div>
               </div>
             )}
-          </div>
+          </aside>
         </>
       )}
-    </div>
+    </>
   );
 };
