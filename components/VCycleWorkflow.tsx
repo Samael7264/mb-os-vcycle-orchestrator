@@ -75,11 +75,11 @@ const Stepper: React.FC<{ currentStep: number }> = ({ currentStep }) => {
   const steps = ['Static Code Report', 'Unit Testing', 'Integration'];
   
   return (
-    <div className="flex items-center gap-3 mb-6 border-b border-gray-200/70 pb-4 w-full overflow-x-auto">
+    <div className="flex items-center gap-2 w-full overflow-x-auto">
       {steps.map((step, index) => (
         <React.Fragment key={step}>
-          <div className={`flex items-center gap-2 ${index > currentStep ? 'opacity-50' : ''}`}>
-            <div className={`w-5 h-5 rounded-full flex items-center justify-center font-bold transition-all ${
+          <div className={`flex items-center gap-2 whitespace-nowrap ${index > currentStep ? 'opacity-50' : ''}`}>
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center font-bold transition-all shrink-0 ${
               index < currentStep 
                 ? 'bg-[#2824D6] text-white' 
                 : index === currentStep 
@@ -88,12 +88,12 @@ const Stepper: React.FC<{ currentStep: number }> = ({ currentStep }) => {
             }`}>
               {index < currentStep ? <Check size={12} strokeWidth={3} /> : <span className={`w-2 h-2 rounded-full ${index === currentStep ? 'bg-[#2824D6]' : 'bg-transparent'}`} />}
             </div>
-            <span className={`text-sm font-semibold tracking-wide ${index === currentStep ? 'text-[#2824D6]' : 'text-gray-700'}`}>
+            <span className={`text-sm font-semibold ${index === currentStep ? 'text-[#2824D6]' : 'text-gray-600'}`}>
               {step}
             </span>
           </div>
           {index < steps.length - 1 && (
-            <div className="flex items-center justify-center px-2">
+            <div className="flex items-center justify-center px-1.5">
               <ArrowRight size={14} className="text-gray-300" />
             </div>
           )}
@@ -1549,43 +1549,128 @@ Root cause was an unaligned memory allocation in the gateway driver.
   const unitWorkspaceReports = buildUnitReports(feature.name, unitTestReport, coverageScore);
   const integrationWorkspaceReports = buildIntegrationReports(feature.name, integrationReport, integrationState);
   const splitViewHeight = 'h-[calc(100vh-280px)] min-h-[620px] max-h-[920px]';
+  const isStaticReview = currentStep === 0 && workflowState === 'review';
+  const isUnitReview = currentStep === 1 && unitTestSubStep === 'review';
+  const isIntegrationReview = currentStep === 2 && integrationState === 'failed';
 
   return (
     <div className="flex gap-5 max-w-[1680px] mx-auto">
       <div className="flex-1 min-w-0">
-        <div className="panel-card rounded-[24px] mb-4 px-4 py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <button 
-              onClick={() => navigate('/')}
-              className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <div className="w-10 h-10 bg-[#2824D6] rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
-              {feature.name.charAt(0)}
-            </div>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-lg font-bold text-gray-900 tracking-tight">{feature.name}</h1>
-                <span className="px-2 py-0.5 bg-orange-50 text-orange-600 border border-orange-100 rounded-full text-xs font-semibold flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                  In-Review
-                </span>
-                <span className="px-2 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-full text-xs font-semibold">
-                  {currentStageLabel}
-                </span>
+        <div className="panel-card rounded-[24px] mb-4 px-4 py-3 flex flex-col gap-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <button 
+                onClick={() => navigate('/')}
+                className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <div className="w-10 h-10 bg-[#2824D6] rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
+                {feature.name.charAt(0)}
               </div>
-              <div className="text-[13px] text-gray-500 font-medium mt-1 truncate">{feature.repository} · {feature.branchName}</div>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-lg font-bold text-gray-900 tracking-tight">{feature.name}</h1>
+                  <span className="px-2 py-0.5 bg-orange-50 text-orange-600 border border-orange-100 rounded-full text-xs font-semibold flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                    In-Review
+                  </span>
+                  <span className="px-2 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-full text-xs font-semibold">
+                    {currentStageLabel}
+                  </span>
+                </div>
+                <div className="text-[13px] text-gray-500 font-medium mt-1 truncate">{feature.repository} · {feature.branchName}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <span>Dashboard</span>
+              <span>/</span>
+              <span>{feature.name}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <span>Dashboard</span>
-            <span>/</span>
-            <span>{feature.name}</span>
+          <div className="border-t border-gray-200/70 pt-3 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <Stepper currentStep={currentStep} />
+            {isStaticReview && (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between xl:justify-end xl:min-w-[420px]">
+                <div className="text-sm">
+                  <span className="font-bold text-gray-900">Review Required</span>
+                  <span className="ml-2 text-xs text-gray-400">Decide if this feature proceeds to Unit Testing.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleReject}
+                    className="px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
+                  >
+                    <X size={14} /> Reject
+                  </button>
+                  <button
+                    onClick={handleApprove}
+                    className="px-4 py-1.5 bg-[#2824D6] hover:bg-indigo-800 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
+                  >
+                    <Check size={14} /> Approve
+                  </button>
+                </div>
+              </div>
+            )}
+            {isUnitReview && (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between xl:justify-end xl:min-w-[520px]">
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="text-sm">
+                    <span className="font-bold text-gray-900">Unit Testing Complete</span>
+                    <span className="ml-2 text-xs text-gray-400">Review coverage before proceeding.</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.18em]">Coverage</span>
+                    <span className={`text-lg font-bold ${coverageScore < 85 ? 'text-amber-600' : 'text-emerald-600'}`}>{coverageScore}%</span>
+                    <div className="w-24 bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-1000 ${coverageScore < 85 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                        style={{ width: `${coverageScore}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleReject}
+                    className="px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
+                  >
+                    <RotateCcw size={13} /> Reject
+                  </button>
+                  <button
+                    onClick={handleApprove}
+                    className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
+                  >
+                    <Check size={13} /> Approve
+                  </button>
+                </div>
+              </div>
+            )}
+            {isIntegrationReview && (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between xl:justify-end xl:min-w-[460px]">
+                <div className="text-sm">
+                  <span className="font-bold text-gray-900">Integration Failed</span>
+                  <span className="ml-2 text-xs text-gray-400">Review the recommendations and decide how to proceed.</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button 
+                    onClick={() => setIntegrationState('idle')}
+                    className="px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg transition-all flex items-center gap-2"
+                  >
+                    <RotateCcw size={14} />
+                    Retry
+                  </button>
+                  <button 
+                    className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-2"
+                  >
+                    <AlertCircle size={14} />
+                    Flag Issue
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-
-        <Stepper currentStep={currentStep} />
 
         {currentStep === 0 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -1635,28 +1720,6 @@ Root cause was an unaligned memory allocation in the gateway driver.
               </div>
             )}            {workflowState === 'review' && (
               <div className="space-y-4">
-                {/* Slim Action Bar */}
-                <div className="panel-card rounded-[22px] px-4 py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <span className="text-sm font-bold text-gray-900">Review Required</span>
-                    <span className="ml-2 text-xs text-gray-400">Decide if this feature proceeds to Unit Testing.</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleReject}
-                      className="px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
-                    >
-                      <X size={14} /> Reject
-                    </button>
-                    <button
-                      onClick={handleApprove}
-                      className="px-4 py-1.5 bg-[#2824D6] hover:bg-indigo-800 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
-                    >
-                      <Check size={14} /> Approve
-                    </button>
-                  </div>
-                </div>
-
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {/* Workspace / Relevant Files */}
                   <div className={`panel-card rounded-[26px] flex flex-col ${splitViewHeight} overflow-hidden`}>
@@ -1726,47 +1789,6 @@ Root cause was an unaligned memory allocation in the gateway driver.
 
             {unitTestSubStep === 'review' && (
               <div className="space-y-4">
-                {/* Slim Action Header */}
-                <div className="panel-card rounded-[22px] px-4 py-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-wrap items-center gap-4">
-                      <div>
-                        <span className="text-sm font-bold text-gray-900">Unit Testing Complete</span>
-                        <span className="ml-2 text-xs text-gray-400">Review coverage before proceeding.</span>
-                      </div>
-                      <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.18em]">Coverage</span>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className={`text-lg font-bold ${coverageScore < 85 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                            {coverageScore}%
-                          </span>
-                          <div className="w-24 bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full transition-all duration-1000 ${coverageScore < 85 ? 'bg-amber-500' : 'bg-emerald-500'}`}
-                              style={{ width: `${coverageScore}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleReject}
-                        className="px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
-                      >
-                        <RotateCcw size={13} /> Reject
-                      </button>
-                      <button
-                        onClick={handleApprove}
-                        className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
-                      >
-                        <Check size={13} /> Approve
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {/* Workspace / Relevant Files */}
                   <div className={`panel-card rounded-[26px] flex flex-col ${splitViewHeight} overflow-hidden`}>
@@ -1851,29 +1873,6 @@ Root cause was an unaligned memory allocation in the gateway driver.
 
             {integrationState === 'failed' && (
               <div className="space-y-4">
-                {/* Top Action Bar */}
-                <div className="panel-card rounded-[24px] p-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                  <div>
-                    <h4 className="font-bold text-gray-900">Integration Failed</h4>
-                    <p className="text-xs text-gray-500 mt-0.5">Review the AI recommendations below and decide how to proceed.</p>
-                  </div>
-                  <div className="flex flex-wrap gap-3">
-                    <button 
-                      onClick={() => setIntegrationState('idle')}
-                      className="px-6 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-bold rounded-xl transition-all flex items-center gap-2"
-                    >
-                      <RotateCcw size={18} />
-                      Retry Integration
-                    </button>
-                    <button 
-                      className="px-8 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-red-500/20 flex items-center gap-2"
-                    >
-                      <AlertCircle size={18} />
-                      Flag Critical Issue
-                    </button>
-                  </div>
-                </div>
-
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {/* Workspace / Relevant Files */}
                   <div className={`panel-card rounded-[26px] border border-red-100 flex flex-col ${splitViewHeight} overflow-hidden border-t-4 border-t-red-500`}>
