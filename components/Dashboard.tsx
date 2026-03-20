@@ -320,41 +320,45 @@ export const Dashboard: React.FC = () => {
 
   return (
     <>
-      <section className="panel-surface relative overflow-hidden rounded-[30px] p-5 sm:p-6 lg:p-7">
+      <section className="panel-surface relative overflow-hidden rounded-[28px] p-4 sm:p-5 lg:p-6">
         <div
           aria-hidden="true"
           className="absolute inset-y-0 right-0 w-full bg-[radial-gradient(circle_at_top_right,_rgba(177,31,41,0.14),_transparent_42%),radial-gradient(circle_at_bottom_right,_rgba(35,50,69,0.16),_transparent_36%)]"
         />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
+        <div className="relative grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_360px] xl:items-start">
+          <div className="min-w-0">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
               <ShieldCheck size={14} className="text-[#b11f29]" aria-hidden="true" />
               Live Module Summary
             </div>
-            <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-slate-950 [text-wrap:balance] sm:text-[3.1rem]">
+            <h1 className="mt-4 font-display text-3xl font-bold tracking-tight text-slate-950 [text-wrap:balance] sm:text-[2.8rem]">
               Module Overview
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
               A cleaner home for module progress, review risk, and V-cycle readiness. The goal here is fast orientation,
               not decorative chrome.
             </p>
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <div className="panel-card-soft rounded-[22px] px-4 py-3">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+              <div className="panel-card-soft rounded-[20px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Modules</div>
+                <div className="mt-1.5 text-2xl font-bold text-slate-950">{features.length}</div>
+              </div>
+              <div className="panel-card-soft rounded-[20px] px-4 py-3">
                 <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">In Progress</div>
-                <div className="mt-2 text-2xl font-bold text-slate-950">{inProgressCount}</div>
+                <div className="mt-1.5 text-2xl font-bold text-slate-950">{inProgressCount}</div>
               </div>
-              <div className="panel-card-soft rounded-[22px] px-4 py-3">
+              <div className="panel-card-soft rounded-[20px] px-4 py-3">
                 <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Needs Attention</div>
-                <div className="mt-2 text-2xl font-bold text-slate-950">{atRiskCount}</div>
+                <div className="mt-1.5 text-2xl font-bold text-slate-950">{atRiskCount}</div>
               </div>
-              <div className="panel-card-soft rounded-[22px] px-4 py-3">
-                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Integrated</div>
-                <div className="mt-2 text-2xl font-bold text-slate-950">{integrationCompleteCount}</div>
+              <div className="panel-card-soft rounded-[20px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Avg Coverage</div>
+                <div className="mt-1.5 text-2xl font-bold text-slate-950">{Math.round(averageCoverage)}%</div>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 lg:w-[330px]">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
             <button
               type="button"
               onClick={() => handleOpenPanel('new-module')}
@@ -392,38 +396,7 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-3 xl:grid-cols-4">
-        <StatCard
-          icon={<Activity size={20} className="text-white" aria-hidden="true" />}
-          value={features.length}
-          label="Active Modules"
-          detail="Modules currently moving through the V-cycle."
-          accentClass="bg-[linear-gradient(135deg,#12161d,#233245)] text-white"
-        />
-        <StatCard
-          icon={<Bot size={20} className="text-white" aria-hidden="true" />}
-          value="7 / 7"
-          label="Specialist Agents"
-          detail="All automation specialists online and ready."
-          accentClass="bg-[linear-gradient(135deg,#7a1017,#b11f29)] text-white"
-        />
-        <StatCard
-          icon={<ShieldCheck size={20} className="text-white" aria-hidden="true" />}
-          value="84%"
-          label="Preflight Score"
-          detail="Average readiness across static analysis and tests."
-          accentClass="bg-[linear-gradient(135deg,#615126,#8d6f32)] text-white"
-        />
-        <StatCard
-          icon={<Github size={20} className="text-white" aria-hidden="true" />}
-          value={12}
-          label="Repo Syncs"
-          detail="Repository updates pulled into this session today."
-          accentClass="bg-[linear-gradient(135deg,#31516c,#4e708c)] text-white"
-        />
-      </section>
-
-      <section className="panel-surface rounded-[30px] p-4 sm:p-5">
+      <section className="panel-surface rounded-[28px] p-4 sm:p-5">
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -432,21 +405,6 @@ export const Dashboard: React.FC = () => {
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                 Search, filter, and open the modules that currently need review. Keep the list dense, calm, and scannable.
               </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3 lg:w-[420px]">
-              <div className="panel-card-soft rounded-[22px] px-4 py-3">
-                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Modules</div>
-                <div className="mt-2 text-xl font-bold text-slate-950">{features.length}</div>
-              </div>
-              <div className="panel-card-soft rounded-[22px] px-4 py-3">
-                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Avg Coverage</div>
-                <div className="mt-2 text-xl font-bold text-slate-950">{Math.round(averageCoverage)}%</div>
-              </div>
-              <div className="panel-card-soft rounded-[22px] px-4 py-3">
-                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Review Risk</div>
-                <div className="mt-2 text-xl font-bold text-slate-950">{atRiskCount}</div>
-              </div>
             </div>
           </div>
 

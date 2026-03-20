@@ -1022,7 +1022,7 @@ const ReportWorkspace: React.FC<{
   const selectedReport = reportsForSelectedTool.find((report) => report.id === selectedReportId) || reportsForSelectedTool[0];
 
   return (
-    <div className="panel-card rounded-[26px] flex flex-col h-[560px] overflow-hidden">
+    <div className="panel-card rounded-[26px] flex flex-col h-full overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-200/80 flex items-center justify-between gap-4 bg-white/90">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -1548,6 +1548,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
   const staticWorkspaceReports = buildStaticReports(feature.name, astreeReport);
   const unitWorkspaceReports = buildUnitReports(feature.name, unitTestReport, coverageScore);
   const integrationWorkspaceReports = buildIntegrationReports(feature.name, integrationReport, integrationState);
+  const splitViewHeight = 'h-[calc(100vh-280px)] min-h-[620px] max-h-[920px]';
 
   return (
     <div className="flex gap-5 max-w-[1680px] mx-auto">
@@ -1587,7 +1588,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
         <Stepper currentStep={currentStep} />
 
         {currentStep === 0 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {workflowState === 'idle' && (
               <div className="panel-card rounded-[28px] px-6 py-8 sm:px-8 sm:py-10 text-center">
                  <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-[22px] flex items-center justify-center mx-auto mb-6 shadow-inner">
@@ -1633,7 +1634,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
                 </p>
               </div>
             )}            {workflowState === 'review' && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Slim Action Bar */}
                 <div className="panel-card rounded-[22px] px-4 py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
@@ -1658,18 +1659,20 @@ Root cause was an unaligned memory allocation in the gateway driver.
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {/* Workspace / Relevant Files */}
-                  <div className="panel-card rounded-[26px] flex flex-col h-[560px] overflow-hidden">
+                  <div className={`panel-card rounded-[26px] flex flex-col ${splitViewHeight} overflow-hidden`}>
                     <FileViewer files={staticFiles} />
                   </div>
 
-                  <ReportWorkspace
+                  <div className={splitViewHeight}>
+                    <ReportWorkspace
                     title="Review Workspace"
                     subtitle="Switch between saved reports and contextual tools without leaving the workflow."
                     reports={staticWorkspaceReports}
                     defaultTool="analysis"
                     analysisReport={aiAnalysis}
                     analysisTool="analysis"
-                  />
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -1677,7 +1680,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
         )}
 
         {currentStep === 1 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {unitTestSubStep === 'idle' && (
               <div className="panel-card rounded-[28px] px-6 py-8 sm:px-8 sm:py-10 text-center">
                  <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-[22px] flex items-center justify-center mx-auto mb-6 shadow-inner">
@@ -1722,7 +1725,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
             )}
 
             {unitTestSubStep === 'review' && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Slim Action Header */}
                 <div className="panel-card rounded-[22px] px-4 py-3">
                   <div className="flex items-center justify-between">
@@ -1766,18 +1769,20 @@ Root cause was an unaligned memory allocation in the gateway driver.
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {/* Workspace / Relevant Files */}
-                  <div className="panel-card rounded-[26px] flex flex-col h-[560px] overflow-hidden">
+                  <div className={`panel-card rounded-[26px] flex flex-col ${splitViewHeight} overflow-hidden`}>
                     <FileViewer files={unitTestFiles} />
                   </div>
 
-                  <ReportWorkspace
+                  <div className={splitViewHeight}>
+                    <ReportWorkspace
                     title="Review Workspace"
                     subtitle="Switch between saved reports and contextual tools without leaving the workflow."
                     reports={unitWorkspaceReports}
                     defaultTool="quality"
                     analysisReport={unitTestAIAnalysis}
                     analysisTool="quality"
-                  />
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -1785,7 +1790,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
         )}
 
         {currentStep === 2 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {integrationState === 'idle' && (
               <div className="panel-card rounded-[28px] px-6 py-8 sm:px-8 sm:py-10 text-center">
                  <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-[22px] flex items-center justify-center mx-auto mb-6 shadow-inner">
@@ -1845,7 +1850,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
             )}
 
             {integrationState === 'failed' && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Top Action Bar */}
                 <div className="panel-card rounded-[24px] p-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                   <div>
@@ -1871,18 +1876,20 @@ Root cause was an unaligned memory allocation in the gateway driver.
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {/* Workspace / Relevant Files */}
-                  <div className="panel-card rounded-[26px] border border-red-100 flex flex-col h-[560px] overflow-hidden border-t-4 border-t-red-500">
+                  <div className={`panel-card rounded-[26px] border border-red-100 flex flex-col ${splitViewHeight} overflow-hidden border-t-4 border-t-red-500`}>
                     <FileViewer files={integrationFiles} />
                   </div>
 
-                  <ReportWorkspace
+                  <div className={splitViewHeight}>
+                    <ReportWorkspace
                     title="Review Workspace"
                     subtitle="Stay in context while switching between saved reports, handoff notes, and failure guidance."
                     reports={integrationWorkspaceReports}
                     defaultTool="integration"
                     analysisReport={integrationAIAnalysis}
                     analysisTool="integration"
-                  />
+                    />
+                  </div>
                 </div>
               </div>
             )}
