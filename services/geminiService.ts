@@ -3,19 +3,20 @@ import { QualityReportData, RiskLevel, TestFile } from "../types";
 
 const MODEL_FLASH = 'gemini-3-flash-preview';
 const MODEL_PRO = 'gemini-3-pro-preview';
+const ENV = import.meta.env;
+const GEMINI_API_KEY = ENV.VITE_GEMINI_API_KEY || ENV.VITE_API_KEY || '';
 
 // Lazy client — only instantiated when a call is made, prevents crash on load with missing key
 let _ai: GoogleGenAI | null = null;
 const getAI = (): GoogleGenAI => {
   if (!_ai) {
-    const key = process.env.API_KEY || process.env.GEMINI_API_KEY || '';
-    if (!key) throw new Error('GEMINI_API_KEY is not set');
-    _ai = new GoogleGenAI({ apiKey: key });
+    if (!GEMINI_API_KEY) throw new Error('VITE_GEMINI_API_KEY is not set');
+    _ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   }
   return _ai;
 };
 
-const NO_KEY = !process.env.API_KEY && !process.env.GEMINI_API_KEY;
+const NO_KEY = !GEMINI_API_KEY;
 
 /**
  * Generates a text summary based on inputs.

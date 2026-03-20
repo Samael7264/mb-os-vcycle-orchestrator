@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Activity,
   AlertCircle,
   ArrowRight,
   CheckCircle,
