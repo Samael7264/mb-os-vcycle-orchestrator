@@ -78,17 +78,17 @@ const Stepper: React.FC<{ currentStep: number }> = ({ currentStep }) => {
     <div className="flex items-center gap-2 w-full overflow-x-auto">
       {steps.map((step, index) => (
         <React.Fragment key={step}>
-          <div className={`flex items-center gap-2 whitespace-nowrap ${index > currentStep ? 'opacity-50' : ''}`}>
-            <div className={`w-5 h-5 rounded-full flex items-center justify-center font-bold transition-all shrink-0 ${
+          <div className={`flex items-center gap-2 whitespace-nowrap ${index > currentStep ? 'opacity-45' : ''}`}>
+            <div className={`w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold transition-all shrink-0 ${
               index < currentStep 
                 ? 'bg-[#2824D6] text-white' 
                 : index === currentStep 
-                  ? 'bg-transparent border-2 border-[#2824D6] text-[#2824D6] ring-2 ring-[#2824D6]/20' 
+                  ? 'bg-transparent border-2 border-[#2824D6] text-[#2824D6] ring-2 ring-[#2824D6]/15' 
                   : 'bg-gray-100 text-gray-400 border-2 border-transparent'
             }`}>
               {index < currentStep ? <Check size={12} strokeWidth={3} /> : <span className={`w-2 h-2 rounded-full ${index === currentStep ? 'bg-[#2824D6]' : 'bg-transparent'}`} />}
             </div>
-            <span className={`text-sm font-semibold ${index === currentStep ? 'text-[#2824D6]' : 'text-gray-600'}`}>
+            <span className={`text-[13px] font-semibold ${index === currentStep ? 'text-[#2824D6]' : 'text-gray-500'}`}>
               {step}
             </span>
           </div>
@@ -1548,7 +1548,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
   const staticWorkspaceReports = buildStaticReports(feature.name, astreeReport);
   const unitWorkspaceReports = buildUnitReports(feature.name, unitTestReport, coverageScore);
   const integrationWorkspaceReports = buildIntegrationReports(feature.name, integrationReport, integrationState);
-  const splitViewHeight = 'h-[calc(100vh-280px)] min-h-[620px] max-h-[920px]';
+  const splitViewHeight = 'h-[calc(100vh-236px)] min-h-[660px] max-h-[960px]';
   const isStaticReview = currentStep === 0 && workflowState === 'review';
   const isUnitReview = currentStep === 1 && unitTestSubStep === 'review';
   const isIntegrationReview = currentStep === 2 && integrationState === 'failed';
@@ -1556,7 +1556,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
   return (
     <div className="flex gap-5 max-w-[1680px] mx-auto">
       <div className="flex-1 min-w-0">
-        <div className="panel-card rounded-[24px] mb-4 px-4 py-3 flex flex-col gap-3 xl:grid xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)_auto] xl:items-center">
+        <div className="panel-card rounded-[22px] mb-3 px-4 py-3 grid gap-3 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)_auto] lg:items-center">
           <div className="flex items-center gap-3 min-w-0">
             <button 
               onClick={() => navigate('/')}
@@ -1582,19 +1582,13 @@ Root cause was an unaligned memory allocation in the gateway driver.
             </div>
           </div>
 
-          <div className="min-w-0 xl:px-4">
+          <div className="min-w-0 lg:px-3">
             <Stepper currentStep={currentStep} />
           </div>
 
-          <div className="flex flex-col gap-2 xl:items-end">
-            <div className="hidden xl:flex items-center gap-2 text-xs text-gray-400">
-              <span>Dashboard</span>
-              <span>/</span>
-              <span>{feature.name}</span>
-            </div>
+          <div className="flex flex-col gap-2 lg:items-end">
             {isStaticReview && (
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center xl:justify-end">
-                <span className="text-sm font-bold text-gray-900">Review Required</span>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center lg:justify-end">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleReject}
@@ -1612,9 +1606,8 @@ Root cause was an unaligned memory allocation in the gateway driver.
               </div>
             )}
             {isUnitReview && (
-              <div className="flex flex-col gap-2 xl:items-end">
+              <div className="flex flex-col gap-2 lg:items-end">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-sm font-bold text-gray-900">Unit Testing Complete</span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.18em]">Coverage</span>
                     <span className={`text-lg font-bold ${coverageScore < 85 ? 'text-amber-600' : 'text-emerald-600'}`}>{coverageScore}%</span>
@@ -1643,8 +1636,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
               </div>
             )}
             {isIntegrationReview && (
-              <div className="flex flex-col gap-2 xl:items-end">
-                <span className="text-sm font-bold text-gray-900">Integration Failed</span>
+              <div className="flex flex-col gap-2 lg:items-end">
                 <div className="flex flex-wrap gap-2">
                   <button 
                     onClick={() => setIntegrationState('idle')}
