@@ -9,10 +9,6 @@ import {
 import Markdown from 'react-markdown';
 import { analyzeStaticCode, analyzeUnitTesting, analyzeIntegration, AIAnalysisReport } from '../services/geminiService';
 import { Feature, FeatureStatus } from './Dashboard';
-import { TestQualityTool } from './TestQualityTool';
-import { SummaryTool } from './SummaryTool';
-import { TestCaseTool } from './TestCaseTool';
-import { UncoveredBranchesTool } from './UncoveredBranchesTool';
 
 const AIAnalysisSection: React.FC<{ report: AIAnalysisReport }> = ({ report }) => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
@@ -162,6 +158,989 @@ const FileViewer: React.FC<{ files: FileItem[] }> = ({ files }) => {
   );
 };
 
+type WorkflowTool = 'analysis' | 'quality' | 'summary' | 'generator' | 'visualizer' | 'branches' | 'integration';
+type ReportTone = 'neutral' | 'positive' | 'warning' | 'danger';
+type IntegrationStatus = 'idle' | 'integrating' | 'passed' | 'failed';
+
+interface ReportMetric {
+  label: string;
+  value: string;
+  tone?: ReportTone;
+}
+
+interface ReportEntry {
+  id: string;
+  tool: WorkflowTool;
+  label: string;
+  generatedAt: string;
+  status: string;
+  tone: ReportTone;
+  source: string;
+  summary: string;
+  highlights: string[];
+  metrics: ReportMetric[];
+  snippetTitle?: string;
+  snippet?: string;
+}
+
+interface ModuleReportProfile {
+  static: {
+    tone: ReportTone;
+    status: string;
+    alarms: string;
+    warnings: string;
+    summary: string;
+    engineerBrief: string;
+    evidence: string;
+    recommendations: string[];
+    snippet: string;
+  };
+  unit: {
+    quality: {
+      tone: ReportTone;
+      status: string;
+      totalSignals: string;
+      health: string;
+      issues: string;
+      summary: string;
+      highlights: string[];
+      snippet: string;
+    };
+    qualityRisk: {
+      tone: ReportTone;
+      status: string;
+      summary: string;
+      highlights: string[];
+      snippet: string;
+    };
+    summary: {
+      tone: ReportTone;
+      status: string;
+      summary: string;
+      highlights: string[];
+      snippet: string;
+    };
+    generator: {
+      tone: ReportTone;
+      status: string;
+      summary: string;
+      highlights: string[];
+      snippet: string;
+    };
+    branches: {
+      tone: ReportTone;
+      status: string;
+      summary: string;
+      highlights: string[];
+      snippet: string;
+    };
+    visualizer: {
+      tone: ReportTone;
+      status: string;
+      summary: string;
+      highlights: string[];
+      snippet: string;
+    };
+  };
+  integration: {
+    tone: ReportTone;
+    status: string;
+    summary: string;
+    highlights: string[];
+    snippet: string;
+  };
+}
+
+const AUTOMATION_LINKS = `Trigger Workflow:
+https://unifyapps-poc.sdp.i.mercedes-benz.com/p/0/automations/69b80530d141de032238970c/preview
+
+Check Workflow:
+https://unifyapps-poc.sdp.i.mercedes-benz.com/p/0/automations/69ba81efd141de032245b9b2/preview`;
+
+const MODULE_REPORT_LIBRARY: Record<string, ModuleReportProfile> = {
+  MonEmmBatTm: {
+    static: {
+      tone: 'positive',
+      status: 'No alarms',
+      alarms: '0',
+      warnings: '0',
+      summary: 'Astree and the AI review both land clean: the battery safe-state module is structurally stable and ready for a controlled move into unit testing.',
+      engineerBrief: 'Keep the review lightweight here. The main watchpoint is traceability around the delay parameter and the safe-state flag, not code correctness.',
+      evidence: 'Reviewers mostly need fast confidence: source evidence, the safe-state output path, and confirmation that no hidden warnings were generated.',
+      recommendations: [
+        'Approve after verifying the safe-state requirement mapping.',
+        'Carry the delay parameter into Tessy boundary coverage.'
+      ],
+      snippet: 'Static Code Analysis for Repository: MonEmmBatTm\nThe analysis found no warnings, errors, or suggestions for improvement in the code.'
+    },
+    unit: {
+      quality: {
+        tone: 'positive',
+        status: 'Low risk',
+        totalSignals: '8',
+        health: '90.5%',
+        issues: '1',
+        summary: 'Coverage is strong overall, with one parameter needing broader boundary variation before sign-off.',
+        highlights: [
+          'Signals analyzed: 7 of 8.',
+          'High-risk area: MonEmmBatTm_TDlySafeSt_P only exercised at its nominal value.',
+          'Critical error flags have full nominal coverage.'
+        ],
+        snippet: 'Quality Index: 90.5%\nHigh Risk Areas: MonEmmBatTm_TDlySafeSt_P has single-value, min, max, and low-variation issues.'
+      },
+      qualityRisk: {
+        tone: 'warning',
+        status: 'Boundary gap',
+        summary: 'The risk is narrow but important: the delay parameter has not been challenged at its extremes, so the logic is not fully evidenced.',
+        highlights: [
+          'Test MonEmmBatTm_TDlySafeSt_P at min 0 and max 5.1.',
+          'Keep safe-state request behavior visible for each boundary run.'
+        ],
+        snippet: 'Suggested follow-up: test MonEmmBatTm_TDlySafeSt_P at minimum (0) and maximum (5.1) values.'
+      },
+      summary: {
+        tone: 'warning',
+        status: 'Traceability warning',
+        summary: 'The generated summary is useful, but it surfaces a requirement-link mismatch that should be front-and-center for reviewers.',
+        highlights: [
+          'Potential wrong linking of requirement id to the test case: PV_EMM-87779.',
+          'The modeled behavior appears to align with PV_EMM-92895 instead.'
+        ],
+        snippet: 'Warning: Potential wrong linking of requirement id to the test case: PV_EMM-87779.'
+      },
+      generator: {
+        tone: 'neutral',
+        status: 'Cases ready',
+        summary: 'Generated cases focus on the three behaviors that matter most here: delay memory, switch handoff, and the safe-state output.',
+        highlights: [
+          'Case 5 covers X_SMonEmmBatTm17_memoryDelayLength.',
+          'Case 6 covers SMonEmmBatTm17_switchR2.',
+          'Case 7 covers MonEmmBatTm_FlgSafeStReq.'
+        ],
+        snippet: 'Generated set: Test Case 5 memoryDelayLength, Test Case 6 switchR2, Test Case 7 safe-state request.'
+      },
+      branches: {
+        tone: 'warning',
+        status: '1 branch pending',
+        summary: 'Only one uncovered branch remains, and it is in the exact delay-memory path reviewers already care about.',
+        highlights: [
+          'Branch sits in the decrement path for X_SMonEmmBatTm17_memoryR.',
+          'Dependencies trace back to the delay parameter and memory initialization.'
+        ],
+        snippet: `if (X_SMonEmmBatTm17_memoryDelayLength) {
+  X_SMonEmmBatTm17_memoryR = (uint8) (SMonEmmBatTm17_switchR2 - ((uint8) 1));
+} else {
+  X_SMonEmmBatTm17_memoryR = SMonEmmBatTm17_switchR2;
+}`
+      },
+      visualizer: {
+        tone: 'neutral',
+        status: 'Flow mapped',
+        summary: 'The module is easy to reason about because the signal chain is compact and traceable from inputs to safe-state output.',
+        highlights: [
+          'Inputs: battery critical error, invalid flag, no-error flag, and delay parameter.',
+          'Output: MonEmmBatTm_FlgSafeStReq.'
+        ],
+        snippet: 'MonEmmBatTm_TDlySafeSt_P + critical error flags -> delay gate -> MonEmmBatTm_FlgSafeStReq'
+      }
+    },
+    integration: {
+      tone: 'neutral',
+      status: 'Automation ready',
+      summary: 'Integration for this module is mostly an orchestration concern now: trigger the shared pipeline and verify the cross-tool handoff stays clean.',
+      highlights: [
+        'Use the UnifyApps trigger flow to start Astree + Tessy automation.',
+        'Use the check flow to poll status and validate handoff sequencing.'
+      ],
+      snippet: AUTOMATION_LINKS
+    }
+  },
+  DcpChassis: {
+    static: {
+      tone: 'danger',
+      status: '12 alarms',
+      alarms: '12',
+      warnings: '12',
+      summary: 'This module needs an engineer-in-the-loop review. The static findings are concentrated in calibration and physical range mismatches, not random noise.',
+      engineerBrief: 'Hold approval until the range-constraint alarms are triaged. The risk is broad enough that a quick pass would be irresponsible.',
+      evidence: 'The strongest evidence trail is around wheel speed, steering angle, yaw rate, and torque limit signals where the Astree alarms cluster.',
+      recommendations: [
+        'Review calibration limits before approving to the next stage.',
+        'Focus on DcpChassis_VVehEsp, TqWhlSumEcoAssiReq, and AgStrw first.'
+      ],
+      snippet: 'Static Code Analysis for Repository: DcpChassis\n12 range-constraint alarms across calibration and physical limits.'
+    },
+    unit: {
+      quality: {
+        tone: 'warning',
+        status: 'Medium risk',
+        totalSignals: '502',
+        health: '70.1%',
+        issues: '282',
+        summary: 'This is a wide coverage surface with meaningful gaps. The right call is to keep quality visible beside the evidence, not bury it in a modal.',
+        highlights: [
+          '401 analyzed signals, 101 skipped.',
+          'Global maximum coverage is only 35.2%.',
+          'Multiple chassis signals still have unresolved issue clusters.'
+        ],
+        snippet: 'Health Score: 70.1%\nHigh Risk Areas: Awd_TqSecyAxle, DcpChassis_AXSnsrRaw_P, Esp_NWhlTarAxleFrnt.'
+      },
+      qualityRisk: {
+        tone: 'danger',
+        status: 'Needs attention',
+        summary: 'The dominant risk pattern is incomplete maximum-value coverage on wheel-speed and axle-limit signals.',
+        highlights: [
+          'Min not tested: 137.',
+          'Max not tested: 260.',
+          'Start with wheel speed and axle-limit calibrations.'
+        ],
+        snippet: 'Maximum value mismatch warnings persist for NWhlRr, NWhlRl, NWhlFr, NWhlFl, NMaxLimAxleRear, and NMaxLimAxleFrnt.'
+      },
+      summary: {
+        tone: 'neutral',
+        status: 'Coverage brief',
+        summary: 'The unit summary emphasizes deactivation logic and signal-boundary validation, which makes it a better review artifact than the raw run log alone.',
+        highlights: [
+          'Project: AUTOSAR Test DcpChassis.',
+          'Boundary-heavy focus on AXSnsrRaw, AYSnsrRaw, AgNSteer, and TqBrkAssc.'
+        ],
+        snippet: 'Unit Test Coverage Summary for Branch: DcpChassis'
+      },
+      generator: {
+        tone: 'neutral',
+        status: 'Cases generated',
+        summary: 'Generated test cases concentrate on the high-signal branches: absolute value thresholding and diff polarity handling.',
+        highlights: [
+          'Case 5 validates SDtrTqshRbs25_Abs <= 2 patterns in the template set.',
+          'Case 6 validates TRUE/FALSE handling for diff sign behavior.'
+        ],
+        snippet: 'Recommended generated set keeps branch logic explicit and boundary-oriented for review.'
+      },
+      branches: {
+        tone: 'warning',
+        status: '10 branches pending',
+        summary: 'The uncovered branch list is large enough to warrant its own contextual report inside the workflow page.',
+        highlights: [
+          'Clusters around RateYawTar, wheel angle, ESP state, and torque requests.',
+          'Use the list as a targeted backlog, not a generic warning.'
+        ],
+        snippet: 'Uncovered branches include DcpChassis_PercTpRAxleEstmt, DcpChassis_StEsp, DcpChassis_StDrgTqReq, and DcpChassis_RateYawTar.'
+      },
+      visualizer: {
+        tone: 'neutral',
+        status: 'Evidence mapped',
+        summary: 'The visualizer view should help reviewers navigate the broad signal surface quickly rather than force them into multiple standalone screens.',
+        highlights: [
+          'Focus paths: AXSnsrRaw, AYSnsrRaw, AgNSteer, and TqBrkAssc.',
+          'Keep line-of-sight between evidence and the active quality report.'
+        ],
+        snippet: 'Highlighted evidence paths: sensor raw values -> steering angle -> braking assistance outputs.'
+      }
+    },
+    integration: {
+      tone: 'warning',
+      status: 'Gate carefully',
+      summary: 'Integration should stay gated until the range-constraint warnings and weak unit coverage areas are explicitly addressed.',
+      highlights: [
+        'Do not treat medium-risk quality as equivalent to integration readiness.',
+        'Use the shared automation flow only after calibration fixes are queued.'
+      ],
+      snippet: AUTOMATION_LINKS
+    }
+  },
+  DtrTqshRbs: {
+    static: {
+      tone: 'warning',
+      status: 'Overflow risk',
+      alarms: '1 critical pattern',
+      warnings: '1 overflow family',
+      summary: 'Static analysis is mostly focused on a low-pass-filter overflow path. The issue is localized enough for targeted remediation.',
+      engineerBrief: 'Keep the review concentrated on saturation and integer-width decisions in the torque shaping filter.',
+      evidence: 'The most useful evidence is the arithmetic expression and the surrounding saturation strategy, not a generic file-by-file walk.',
+      recommendations: [
+        'Add saturation before the integer addition.',
+        'Consider 64-bit arithmetic for the intermediate sum.'
+      ],
+      snippet: '(sint64)SDtrTqshRbs27_inertia + (SDtrTqshRbs26_RescalerInput / ((sint32) 200))'
+    },
+    unit: {
+      quality: {
+        tone: 'positive',
+        status: 'Low risk',
+        totalSignals: '14',
+        health: '86.8%',
+        issues: '6',
+        summary: 'Coverage is solid enough to keep moving, but not clean enough to hide the remaining gaps.',
+        highlights: [
+          'Maximum coverage is weaker than minimum coverage.',
+          'Torque request shaping paths are the main residual focus.'
+        ],
+        snippet: 'Quality Index: 86.8%\nHigh Risk Areas: DtrTqshRbsAcvn_StTqshIni and DtrTqshRbs_TqInReqMonDly.'
+      },
+      qualityRisk: {
+        tone: 'warning',
+        status: 'Targeted follow-up',
+        summary: 'The remaining issues are concentrated enough that a follow-up pass can be narrow and measurable.',
+        highlights: [
+          'Max not tested: 4.',
+          'Scaling not tested: 2.'
+        ],
+        snippet: 'Primary follow-up target: expand max-value and scaling coverage on torque shaping signals.'
+      },
+      summary: {
+        tone: 'neutral',
+        status: 'Behavior brief',
+        summary: 'The test summary explains the dynamic filtering behavior clearly, which makes it a better artifact for reviewers than a raw spreadsheet.',
+        highlights: [
+          'Validates ramp behavior toward the filtered torque request.',
+          'Shows the delayed torque request state explicitly.'
+        ],
+        snippet: 'DtrTqshRbs_TqReqFil ramps toward the input value over multiple execution steps.'
+      },
+      generator: {
+        tone: 'neutral',
+        status: 'Branch cases ready',
+        summary: 'Generated cases are already aligned with the two branch predicates that matter most to reviewers.',
+        highlights: [
+          'Case 5 covers SDtrTqshRbs25_Abs <= 2.',
+          'Case 6 covers SDtrTqshRbs25_Diff >= 0.'
+        ],
+        snippet: 'Generated coverage template uses TRUE/FALSE scenarios for both ABS and DIFF branch families.'
+      },
+      branches: {
+        tone: 'warning',
+        status: '2 branches pending',
+        summary: 'The uncovered branches live inside the torque-read phase logic, so they should stay visible in the same place reviewers inspect the summary.',
+        highlights: [
+          'Both branches trace into DtrTqshRbs_TqrdPha1F.',
+          'They are more useful as a follow-up checklist than as a separate route.'
+        ],
+        snippet: 'Uncovered branches map to Logic/DtrTqshRbs_Enable/DtrTqshRbs_Tq/DtrTqshRbs_TqrdPha1/DtrTqshRbs_TqrdPha1F'
+      },
+      visualizer: {
+        tone: 'neutral',
+        status: 'Signal path ready',
+        summary: 'The evidence view should center the LPF, the delayed-request state, and the filtered torque output in one compact surface.',
+        highlights: [
+          'Inputs: delayed flag, phase duration, enable flag, initial request.',
+          'Output: DtrTqshRbs_TqReqFil.'
+        ],
+        snippet: 'Core evidence path: delayed torque request inputs -> LPF -> filtered torque output.'
+      }
+    },
+    integration: {
+      tone: 'neutral',
+      status: 'Ready with guardrails',
+      summary: 'Integration is reasonable after the overflow mitigation is clear, but the runtime arithmetic decision should remain documented in handoff notes.',
+      highlights: [
+        'Carry the LPF saturation decision into integration notes.',
+        'Use the shared automation flow for validation and status checks.'
+      ],
+      snippet: AUTOMATION_LINKS
+    }
+  },
+  SrsVReqVmsl: {
+    static: {
+      tone: 'warning',
+      status: '5 warnings',
+      alarms: '5',
+      warnings: '5',
+      summary: 'The static profile is mixed: some warnings are likely code-generation artifacts, but the arithmetic overflow findings are real review items.',
+      engineerBrief: 'Separate unreachable-code artifacts from actionable overflow issues so reviewers do not overreact to the raw warning count.',
+      evidence: 'The most important evidence is the two overflow expressions and the library-block logic that creates the unreachable code paths.',
+      recommendations: [
+        'Document code-generation artifacts explicitly.',
+        'Use wider arithmetic or saturation for the forward/reverse limiter math.'
+      ],
+      snippet: 'Warnings include unreachable code in Difference Limiter and arithmetic overflow in MinMax4/delayY calculations.'
+    },
+    unit: {
+      quality: {
+        tone: 'warning',
+        status: 'Medium risk',
+        totalSignals: '135',
+        health: '76.5%',
+        issues: '38',
+        summary: 'This module has workable coverage, but enough signal-quality gaps that the right-hand report rail should make them impossible to miss.',
+        highlights: [
+          'Analyzed signals: 79.',
+          'Parameters with issues include SrsVReqVmsl_VVehMaxAcvScr_P and SrsVReqVmsl_VVehMaxScr2_P.'
+        ],
+        snippet: 'Risk Level: MEDIUM (Health Score: 76.5%)'
+      },
+      qualityRisk: {
+        tone: 'warning',
+        status: 'Range gaps',
+        summary: 'Risk is driven by incomplete min/max coverage and scaling coverage across speed-limit parameters.',
+        highlights: [
+          'Min not tested: 20.',
+          'Max not tested: 26.',
+          'Scaling not tested: 23.'
+        ],
+        snippet: 'Coverage follow-up should prioritize forward and reverse speed-limit parameters with low max-tested percentages.'
+      },
+      summary: {
+        tone: 'neutral',
+        status: 'Scenario brief',
+        summary: 'The sample summary centers on reverse speed limiting under kickdown and AMG mode, which is exactly the kind of scenario-specific explanation engineers need.',
+        highlights: [
+          'Focus case: reverse limit coordination.',
+          'Forward speed limit remains unaffected in the highlighted scenario.'
+        ],
+        snippet: 'Summary for Test Case 4.5 of SrsVReqVmsl'
+      },
+      generator: {
+        tone: 'neutral',
+        status: 'Cases generated',
+        summary: 'Generated unit cases cover the limiter, delay logic, and rescaler dependencies in a way that maps well to the static warning profile.',
+        highlights: [
+          'Targets rescaler behavior and delayY interactions.',
+          'Keeps the forward/reverse limiter math visible.'
+        ],
+        snippet: 'The generated unit test cases for the branch "SrsVReqVmsl" have been successfully generated.'
+      },
+      branches: {
+        tone: 'warning',
+        status: '3 branches pending',
+        summary: 'The uncovered branches concentrate in the forward and reverse limiter delay paths, making them ideal candidates for an inline follow-up view.',
+        highlights: [
+          'Reverse DifferenceLimiter delayY path remains uncovered.',
+          'Forward limiter Div1 and delayY paths also need evidence.'
+        ],
+        snippet: 'Uncovered branches map to Logic/SrsVReqVmsl_Rvs/DifferenceLimiter/delayY and Logic/SrsVReqVmsl_Fwd/...'
+      },
+      visualizer: {
+        tone: 'neutral',
+        status: 'Flow ready',
+        summary: 'The right UI for this module is a compact evidence view that keeps limiter math, delay states, and speed outputs visible together.',
+        highlights: [
+          'Keep reverse and forward limiter paths side-by-side.',
+          'Surface switchMax and delayY as first-class evidence nodes.'
+        ],
+        snippet: 'Key nodes: SSrsVReqVmsl88_switchMax, X_SSrsVReqVmsl79_delayY, reverse and forward speed limits.'
+      }
+    },
+    integration: {
+      tone: 'warning',
+      status: 'Proceed carefully',
+      summary: 'Integration should stay conscious of the overflow fixes and limiter coverage gaps so the workflow does not present false confidence.',
+      highlights: [
+        'Capture limiter overflow decisions in the handoff brief.',
+        'Use the shared automation links after unit follow-ups are queued.'
+      ],
+      snippet: AUTOMATION_LINKS
+    }
+  }
+};
+
+const STAGE_LABELS = ['Static Analysis', 'Unit Testing', 'Integration'];
+
+const getToolLabel = (tool: WorkflowTool) => {
+  switch (tool) {
+    case 'analysis':
+      return 'Default Analysis';
+    case 'quality':
+      return 'Quality Report';
+    case 'summary':
+      return 'Summariser';
+    case 'generator':
+      return 'Test Generator';
+    case 'visualizer':
+      return 'Visualiser';
+    case 'branches':
+      return 'Uncovered Branches';
+    case 'integration':
+      return 'Integration Notes';
+    default:
+      return 'Report';
+  }
+};
+
+const getToolIcon = (tool: WorkflowTool, className = 'w-4 h-4') => {
+  switch (tool) {
+    case 'analysis':
+      return <ShieldCheck className={className} />;
+    case 'quality':
+      return <BarChart2 className={className} />;
+    case 'summary':
+      return <MessageSquare className={className} />;
+    case 'generator':
+      return <Bot className={className} />;
+    case 'visualizer':
+      return <Eye className={className} />;
+    case 'branches':
+      return <GitBranch className={className} />;
+    case 'integration':
+      return <Layers className={className} />;
+    default:
+      return <FileText className={className} />;
+  }
+};
+
+const getToneClasses = (tone: ReportTone) => {
+  switch (tone) {
+    case 'positive':
+      return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    case 'warning':
+      return 'bg-amber-50 text-amber-700 border-amber-100';
+    case 'danger':
+      return 'bg-red-50 text-red-700 border-red-100';
+    default:
+      return 'bg-slate-50 text-slate-700 border-slate-200';
+  }
+};
+
+const getMetricToneClasses = (tone: ReportTone = 'neutral') => {
+  switch (tone) {
+    case 'positive':
+      return 'bg-emerald-50 border-emerald-100 text-emerald-800';
+    case 'warning':
+      return 'bg-amber-50 border-amber-100 text-amber-800';
+    case 'danger':
+      return 'bg-red-50 border-red-100 text-red-800';
+    default:
+      return 'bg-slate-50 border-slate-200 text-slate-800';
+  }
+};
+
+const buildStaticReports = (featureName: string, astreeReport: string): ReportEntry[] => {
+  const profile = MODULE_REPORT_LIBRARY[featureName] || MODULE_REPORT_LIBRARY.MonEmmBatTm;
+
+  return [
+    {
+      id: 'static-latest',
+      tool: 'analysis',
+      label: 'Latest Astree run',
+      generatedAt: 'Current workflow run',
+      status: profile.static.status,
+      tone: profile.static.tone,
+      source: 'Astree + AI review',
+      summary: profile.static.summary,
+      highlights: profile.static.recommendations,
+      metrics: [
+        { label: 'Alarms', value: profile.static.alarms, tone: profile.static.tone },
+        { label: 'Warnings', value: profile.static.warnings, tone: profile.static.tone },
+        { label: 'Stage', value: 'Static', tone: 'neutral' },
+        { label: 'Owner', value: featureName, tone: 'neutral' }
+      ],
+      snippetTitle: 'Latest report extract',
+      snippet: astreeReport || profile.static.snippet
+    },
+    {
+      id: 'static-baseline',
+      tool: 'analysis',
+      label: 'Engineer baseline',
+      generatedAt: 'Google Doc reference',
+      status: profile.static.status,
+      tone: profile.static.tone,
+      source: 'Agentic output baseline',
+      summary: profile.static.engineerBrief,
+      highlights: profile.static.recommendations,
+      metrics: [
+        { label: 'Alarms', value: profile.static.alarms, tone: profile.static.tone },
+        { label: 'Review', value: 'Engineer brief', tone: 'neutral' }
+      ],
+      snippetTitle: 'Baseline note',
+      snippet: profile.static.snippet
+    },
+    {
+      id: 'static-summary',
+      tool: 'summary',
+      label: 'Engineer brief',
+      generatedAt: 'Google Doc reference',
+      status: 'Context ready',
+      tone: 'neutral',
+      source: 'Workflow guidance',
+      summary: profile.static.engineerBrief,
+      highlights: profile.static.recommendations,
+      metrics: [
+        { label: 'Focus', value: 'Review context', tone: 'neutral' },
+        { label: 'Route', value: 'Inline', tone: 'neutral' }
+      ],
+      snippetTitle: 'Reviewer note',
+      snippet: profile.static.snippet
+    },
+    {
+      id: 'static-visualizer',
+      tool: 'visualizer',
+      label: 'Evidence trail',
+      generatedAt: 'Google Doc reference',
+      status: 'Evidence mapped',
+      tone: 'neutral',
+      source: 'UX review recommendation',
+      summary: profile.static.evidence,
+      highlights: [
+        'Keep the file viewer and report workspace visible together.',
+        'Use the 3-dot menu to switch tools without leaving the page.'
+      ],
+      metrics: [
+        { label: 'Layout', value: 'Inline split view', tone: 'neutral' },
+        { label: 'Evidence', value: 'Visible', tone: 'positive' }
+      ],
+      snippetTitle: 'Primary evidence',
+      snippet: profile.static.snippet
+    }
+  ];
+};
+
+const buildUnitReports = (featureName: string, unitTestReport: string, coverageScore: number): ReportEntry[] => {
+  const profile = MODULE_REPORT_LIBRARY[featureName] || MODULE_REPORT_LIBRARY.MonEmmBatTm;
+
+  return [
+    {
+      id: 'unit-quality-latest',
+      tool: 'quality',
+      label: 'Latest Tessy run',
+      generatedAt: 'Current workflow run',
+      status: profile.unit.quality.status,
+      tone: profile.unit.quality.tone,
+      source: 'Tessy + agentic quality report',
+      summary: profile.unit.quality.summary,
+      highlights: profile.unit.quality.highlights,
+      metrics: [
+        { label: 'Coverage', value: `${coverageScore}%`, tone: coverageScore >= 85 ? 'positive' : 'warning' },
+        { label: 'Signals', value: profile.unit.quality.totalSignals, tone: 'neutral' },
+        { label: 'Issues', value: profile.unit.quality.issues, tone: profile.unit.quality.tone },
+        { label: 'Health', value: profile.unit.quality.health, tone: profile.unit.quality.tone }
+      ],
+      snippetTitle: 'Latest report extract',
+      snippet: unitTestReport || profile.unit.quality.snippet
+    },
+    {
+      id: 'unit-quality-risk',
+      tool: 'quality',
+      label: 'Risk snapshot',
+      generatedAt: 'Google Doc reference',
+      status: profile.unit.qualityRisk.status,
+      tone: profile.unit.qualityRisk.tone,
+      source: 'Signal risk breakdown',
+      summary: profile.unit.qualityRisk.summary,
+      highlights: profile.unit.qualityRisk.highlights,
+      metrics: [
+        { label: 'Coverage', value: `${coverageScore}%`, tone: coverageScore >= 85 ? 'positive' : 'warning' },
+        { label: 'Priority', value: 'Follow-up', tone: profile.unit.qualityRisk.tone }
+      ],
+      snippetTitle: 'Risk note',
+      snippet: profile.unit.qualityRisk.snippet
+    },
+    {
+      id: 'unit-summary',
+      tool: 'summary',
+      label: 'Test summary',
+      generatedAt: 'Google Doc reference',
+      status: profile.unit.summary.status,
+      tone: profile.unit.summary.tone,
+      source: 'Test case summariser',
+      summary: profile.unit.summary.summary,
+      highlights: profile.unit.summary.highlights,
+      metrics: [
+        { label: 'Audience', value: 'Reviewers', tone: 'neutral' },
+        { label: 'Format', value: 'Narrative', tone: 'neutral' }
+      ],
+      snippetTitle: 'Summary extract',
+      snippet: profile.unit.summary.snippet
+    },
+    {
+      id: 'unit-generator',
+      tool: 'generator',
+      label: 'Generated cases',
+      generatedAt: 'Google Doc reference',
+      status: profile.unit.generator.status,
+      tone: profile.unit.generator.tone,
+      source: 'Test case generator',
+      summary: profile.unit.generator.summary,
+      highlights: profile.unit.generator.highlights,
+      metrics: [
+        { label: 'Mode', value: 'Agentic', tone: 'neutral' },
+        { label: 'Focus', value: 'Branch coverage', tone: 'neutral' }
+      ],
+      snippetTitle: 'Generation note',
+      snippet: profile.unit.generator.snippet
+    },
+    {
+      id: 'unit-visualizer',
+      tool: 'visualizer',
+      label: 'Evidence map',
+      generatedAt: 'Google Doc reference',
+      status: profile.unit.visualizer.status,
+      tone: profile.unit.visualizer.tone,
+      source: 'Test case visualiser',
+      summary: profile.unit.visualizer.summary,
+      highlights: profile.unit.visualizer.highlights,
+      metrics: [
+        { label: 'Layout', value: 'Right rail', tone: 'neutral' },
+        { label: 'Context', value: 'Preserved', tone: 'positive' }
+      ],
+      snippetTitle: 'Evidence note',
+      snippet: profile.unit.visualizer.snippet
+    },
+    {
+      id: 'unit-branches',
+      tool: 'branches',
+      label: 'Uncovered branches',
+      generatedAt: 'Google Doc reference',
+      status: profile.unit.branches.status,
+      tone: profile.unit.branches.tone,
+      source: 'Branch tracking output',
+      summary: profile.unit.branches.summary,
+      highlights: profile.unit.branches.highlights,
+      metrics: [
+        { label: 'Backlog', value: 'Targeted', tone: profile.unit.branches.tone },
+        { label: 'Review mode', value: 'Inline', tone: 'neutral' }
+      ],
+      snippetTitle: 'Branch extract',
+      snippet: profile.unit.branches.snippet
+    }
+  ];
+};
+
+const buildIntegrationReports = (
+  featureName: string,
+  integrationReport: string,
+  integrationState: IntegrationStatus
+): ReportEntry[] => {
+  const profile = MODULE_REPORT_LIBRARY[featureName] || MODULE_REPORT_LIBRARY.MonEmmBatTm;
+  const currentStatus = integrationState === 'failed' ? 'Failed run' : integrationState === 'passed' ? 'Passed run' : profile.integration.status;
+  const currentTone: ReportTone = integrationState === 'failed' ? 'danger' : integrationState === 'passed' ? 'positive' : profile.integration.tone;
+
+  return [
+    {
+      id: 'integration-current',
+      tool: 'integration',
+      label: 'Current integration status',
+      generatedAt: 'Current workflow run',
+      status: currentStatus,
+      tone: currentTone,
+      source: 'Integration stage output',
+      summary: integrationState === 'failed'
+        ? 'The current run failed, so the right-hand workspace should stay focused on recovery, not navigation away from the page.'
+        : profile.integration.summary,
+      highlights: integrationState === 'failed'
+        ? [
+            'Keep the failure report visible beside the workspace evidence.',
+            'Use retry only after the AI recommendation and report history have been reviewed.'
+          ]
+        : profile.integration.highlights,
+      metrics: [
+        { label: 'State', value: integrationState === 'failed' ? 'Failed' : integrationState === 'passed' ? 'Passed' : 'Ready', tone: currentTone },
+        { label: 'Flow', value: 'Integration', tone: 'neutral' }
+      ],
+      snippetTitle: 'Latest status',
+      snippet: integrationReport || profile.integration.snippet
+    },
+    {
+      id: 'integration-links',
+      tool: 'integration',
+      label: 'Automation links',
+      generatedAt: 'Google Doc reference',
+      status: 'Ops reference',
+      tone: 'neutral',
+      source: 'Astree & Tessy integration',
+      summary: 'Keep the trigger and check automation links inside the workflow page so engineers do not leave the review context to find them.',
+      highlights: [
+        'Trigger the shared workflow from the same review surface.',
+        'Use the check flow for monitoring, retries, and follow-up validation.'
+      ],
+      metrics: [
+        { label: 'Links', value: '2', tone: 'neutral' },
+        { label: 'Location', value: 'Inline', tone: 'positive' }
+      ],
+      snippetTitle: 'Automation links',
+      snippet: AUTOMATION_LINKS
+    },
+    {
+      id: 'integration-summary',
+      tool: 'summary',
+      label: 'Handoff brief',
+      generatedAt: 'Google Doc reference',
+      status: profile.integration.status,
+      tone: profile.integration.tone,
+      source: 'Workflow handoff note',
+      summary: profile.integration.summary,
+      highlights: profile.integration.highlights,
+      metrics: [
+        { label: 'Audience', value: 'Release owner', tone: 'neutral' },
+        { label: 'Intent', value: 'Handoff', tone: 'neutral' }
+      ],
+      snippetTitle: 'Handoff note',
+      snippet: profile.integration.snippet
+    }
+  ];
+};
+
+const ReportWorkspace: React.FC<{
+  title: string;
+  subtitle: string;
+  reports: ReportEntry[];
+  defaultTool: WorkflowTool;
+  analysisReport?: AIAnalysisReport | null;
+  analysisTool?: WorkflowTool;
+}> = ({ title, subtitle, reports, defaultTool, analysisReport, analysisTool }) => {
+  const [selectedTool, setSelectedTool] = useState<WorkflowTool>(defaultTool);
+  const [selectedReportId, setSelectedReportId] = useState('');
+  const [isToolMenuOpen, setIsToolMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setSelectedTool(defaultTool);
+    setIsToolMenuOpen(false);
+  }, [defaultTool, title]);
+
+  const availableTools = Array.from(new Set(reports.map((report) => report.tool)));
+  const reportsForSelectedTool = reports.filter((report) => report.tool === selectedTool);
+
+  useEffect(() => {
+    if (!reportsForSelectedTool.some((report) => report.id === selectedReportId)) {
+      setSelectedReportId(reportsForSelectedTool[0]?.id || '');
+    }
+  }, [selectedReportId, reportsForSelectedTool]);
+
+  const selectedReport = reportsForSelectedTool.find((report) => report.id === selectedReportId) || reportsForSelectedTool[0];
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[600px] overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-200 flex items-start justify-between gap-4 bg-white">
+        <div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-indigo-500" />
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-gray-900">{title}</span>
+          </div>
+          <p className="text-sm text-gray-500 mt-2 max-w-xl">{subtitle}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <label className="sr-only" htmlFor={`${title}-report-picker`}>Saved report</label>
+          <select
+            id={`${title}-report-picker`}
+            value={selectedReport?.id || ''}
+            onChange={(event) => setSelectedReportId(event.target.value)}
+            className="min-w-[210px] px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          >
+            {reportsForSelectedTool.map((report) => (
+              <option key={report.id} value={report.id}>
+                {report.label}
+              </option>
+            ))}
+          </select>
+          <div className="relative">
+            <button
+              onClick={() => setIsToolMenuOpen((open) => !open)}
+              className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Switch report tool"
+            >
+              <MoreVertical size={16} />
+            </button>
+            {isToolMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setIsToolMenuOpen(false)} />
+                <div className="absolute right-0 top-11 z-40 w-56 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden">
+                  <div className="px-3 py-2 border-b border-gray-100">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Tools</p>
+                  </div>
+                  {availableTools.map((tool) => {
+                    const count = reports.filter((report) => report.tool === tool).length;
+                    const isActive = tool === selectedTool;
+
+                    return (
+                      <button
+                        key={tool}
+                        onClick={() => {
+                          setSelectedTool(tool);
+                          setSelectedReportId('');
+                          setIsToolMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors ${
+                          isActive ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2 font-medium">
+                          {getToolIcon(tool, 'w-4 h-4')}
+                          {getToolLabel(tool)}
+                        </span>
+                        <span className="text-xs text-gray-400">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#F8FAFC] p-4 space-y-4">
+        {selectedReport ? (
+          <>
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
+                      {getToolIcon(selectedReport.tool, 'w-4 h-4')}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">{selectedReport.label}</h3>
+                      <p className="text-sm text-gray-500">{selectedReport.source}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`px-2.5 py-1 rounded-full border text-xs font-semibold ${getToneClasses(selectedReport.tone)}`}>
+                      {selectedReport.status}
+                    </span>
+                    <span className="text-xs text-gray-400">Saved: {selectedReport.generatedAt}</span>
+                  </div>
+                </div>
+                <div className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                  Active tool: <span className="font-semibold text-gray-900">{getToolLabel(selectedReport.tool)}</span>
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-gray-600">{selectedReport.summary}</p>
+            </div>
+
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+              {selectedReport.metrics.map((metric) => (
+                <div key={`${selectedReport.id}-${metric.label}`} className={`rounded-xl border px-4 py-3 ${getMetricToneClasses(metric.tone)}`}>
+                  <div className="text-xs uppercase tracking-[0.16em] text-current/70 font-semibold">{metric.label}</div>
+                  <div className="mt-2 text-lg font-bold">{metric.value}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <h4 className="text-sm font-bold text-gray-900">Review Focus</h4>
+                <ul className="mt-4 space-y-3">
+                  {selectedReport.highlights.map((highlight) => (
+                    <li key={highlight} className="flex items-start gap-3 text-sm text-gray-600">
+                      <span className="mt-1.5 h-2 w-2 rounded-full bg-indigo-500 shrink-0" />
+                      <span>{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <h4 className="text-sm font-bold text-gray-900">{selectedReport.snippetTitle || 'Report extract'}</h4>
+                <pre className="mt-4 rounded-xl bg-[#101828] text-slate-200 p-4 text-xs leading-6 overflow-x-auto whitespace-pre-wrap font-mono">
+                  <code>{selectedReport.snippet || 'No saved extract for this report yet.'}</code>
+                </pre>
+              </div>
+            </div>
+
+            {analysisReport && analysisTool === selectedReport.tool && (
+              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <AIAnalysisSection report={analysisReport} />
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="h-full rounded-2xl border border-dashed border-gray-300 bg-white flex items-center justify-center text-sm text-gray-500">
+            No reports available for this tool yet.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const VCycleWorkflow: React.FC = () => {
   const { featureId } = useParams<{ featureId: string }>();
   const navigate = useNavigate();
@@ -173,14 +1152,12 @@ export const VCycleWorkflow: React.FC = () => {
   const [astreeReport, setAstreeReport] = useState<string>('');
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisReport | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTool, setActiveTool] = useState<'quality' | 'summary' | 'testgen' | 'branches' | null>(null);
 
   // Unit Testing Specific State
   const [unitTestSubStep, setUnitTestSubStep] = useState<'idle' | 'fetching_files' | 'running_tessy' | 'generating_summary' | 'review'>('idle');
   const [unitTestReport, setUnitTestReport] = useState<string>('');
   const [unitTestAIAnalysis, setUnitTestAIAnalysis] = useState<AIAnalysisReport | null>(null);
   const [coverageScore, setCoverageScore] = useState<number>(0);
-  const [showIntermediateTools, setShowIntermediateTools] = useState(false);
 
   // Integration Specific State
   const [integrationState, setIntegrationState] = useState<'idle' | 'integrating' | 'passed' | 'failed'>('idle');
@@ -459,12 +1436,6 @@ Test cases for DtrTqshRbs cover saturation logic, delay logic, and final output 
     setUnitTestSubStep('review');
     setIsProcessing(false);
     
-    // Intelligently show intermediate tools if coverage is low
-    if (coverage < 85) {
-      setShowIntermediateTools(true);
-    } else {
-      setShowIntermediateTools(false);
-    }
   };
 
   const startIntegration = async (shouldPass: boolean) => {
@@ -546,6 +1517,11 @@ Root cause was an unaligned memory allocation in the gateway driver.
 
   if (!feature) return <div className="p-8 text-center">Loading feature data...</div>;
 
+  const currentStageLabel = STAGE_LABELS[currentStep] || STAGE_LABELS[0];
+  const staticWorkspaceReports = buildStaticReports(feature.name, astreeReport);
+  const unitWorkspaceReports = buildUnitReports(feature.name, unitTestReport, coverageScore);
+  const integrationWorkspaceReports = buildIntegrationReports(feature.name, integrationReport, integrationState);
+
   return (
     <div className="flex gap-8 max-w-[1600px] mx-auto">
       <div className="flex-1 min-w-0">
@@ -569,6 +1545,7 @@ Root cause was an unaligned memory allocation in the gateway driver.
                 </span>
               </div>
               <div className="text-[13px] text-gray-500 font-medium mt-0.5">{feature.repository} · {feature.branchName}</div>
+              <div className="text-xs text-gray-400 mt-1">Dashboard / {feature.name} / {currentStageLabel}</div>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -657,54 +1634,14 @@ Root cause was an unaligned memory allocation in the gateway driver.
                     <FileViewer files={staticFiles} />
                   </div>
 
-                  {/* AI Analysis — tools in header dropdown */}
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[600px] overflow-hidden">
-                    <div className="p-3 bg-white border-b border-gray-200 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-900">AI Safety Investigation</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-emerald-600 uppercase">Gemini 3.1 Pro</span>
-                        {/* Tools 3-dot menu */}
-                        <div className="relative">
-                          <button
-                            id="static-tools-btn"
-                            onClick={() => setActiveTool(activeTool === null ? 'quality' : null)}
-                            className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                            title="Open a report"
-                          >
-                            <MoreVertical size={15} />
-                          </button>
-                          {activeTool && (
-                            <>
-                              <div className="fixed inset-0 z-30" onClick={() => setActiveTool(null)} />
-                              <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-40 overflow-hidden">
-                                <div className="px-3 py-2 border-b border-gray-100">
-                                  <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">Reports</p>
-                                </div>
-                                <button onClick={() => setActiveTool('quality')} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5">
-                                  <BarChart2 size={13} className="text-indigo-500" /> Code Quality Report
-                                </button>
-                                <button onClick={() => setActiveTool('summary')} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5">
-                                  <MessageSquare size={13} className="text-indigo-500" /> Code Explainer
-                                </button>
-                                <button onClick={() => setActiveTool('summary')} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5">
-                                  <FileText size={13} className="text-indigo-500" /> Code Summariser
-                                </button>
-                                <button onClick={() => setActiveTool('testgen')} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5">
-                                  <Eye size={13} className="text-indigo-500" /> Code Visualiser
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-white">
-                      {aiAnalysis && <AIAnalysisSection report={aiAnalysis} />}
-                    </div>
-                  </div>
+                  <ReportWorkspace
+                    title="Reports & Tools"
+                    subtitle="Keep the default analysis visible here, then switch to summaries or evidence views from the 3-dot menu without leaving the workflow."
+                    reports={staticWorkspaceReports}
+                    defaultTool="analysis"
+                    analysisReport={aiAnalysis}
+                    analysisTool="analysis"
+                  />
                 </div>
               </div>
             )}
@@ -805,53 +1742,14 @@ Root cause was an unaligned memory allocation in the gateway driver.
                     <FileViewer files={unitTestFiles} />
                   </div>
 
-                  {/* AI Analysis — tools 3-dot in header */}
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[600px] overflow-hidden">
-                    <div className="p-3 bg-white border-b border-gray-200 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Bot size={13} className="text-indigo-600" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-900">AI Testing Analysis</span>
-                      </div>
-                      {/* Tools 3-dot */}
-                      <div className="relative">
-                        <button
-                          onClick={() => setActiveTool(activeTool === null ? 'quality' : null)}
-                          className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                          title="Open a tool"
-                        >
-                          <MoreVertical size={15} />
-                        </button>
-                        {activeTool && (
-                          <>
-                            <div className="fixed inset-0 z-30" onClick={() => setActiveTool(null)} />
-                            <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-40 overflow-hidden">
-                              <div className="px-3 py-2 border-b border-gray-100">
-                                <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">Tools</p>
-                              </div>
-                              <button onClick={() => setActiveTool('quality')} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5">
-                                <BarChart2 size={13} className="text-indigo-500" /> Quality Report
-                              </button>
-                              <button onClick={() => setActiveTool('branches')} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5">
-                                <GitBranch size={13} className="text-indigo-500" /> Uncovered Branches
-                              </button>
-                              <button onClick={() => setActiveTool('testgen')} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5">
-                                <Eye size={13} className="text-indigo-500" /> Test Case Visualiser
-                              </button>
-                              <button onClick={() => setActiveTool('summary')} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5">
-                                <FileText size={13} className="text-indigo-500" /> TC Summariser
-                              </button>
-                              <button onClick={() => setActiveTool('testgen')} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50 flex items-center gap-2.5">
-                                <Bot size={13} className="text-indigo-600" /> Generate Tests
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-white">
-                      {unitTestAIAnalysis && <AIAnalysisSection report={unitTestAIAnalysis} />}
-                    </div>
-                  </div>
+                  <ReportWorkspace
+                    title="Reports & Tools"
+                    subtitle="Use the 3-dot menu to pivot between the default quality report, uncovered branches, generated tests, and the saved summaries for this module."
+                    reports={unitWorkspaceReports}
+                    defaultTool="quality"
+                    analysisReport={unitTestAIAnalysis}
+                    analysisTool="quality"
+                  />
                 </div>
               </div>
             )}
@@ -949,53 +1847,20 @@ Root cause was an unaligned memory allocation in the gateway driver.
                     <FileViewer files={integrationFiles} />
                   </div>
 
-                  {/* AI Analysis */}
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col h-[600px] overflow-hidden">
-                    <div className="p-4 bg-white border-b border-gray-100 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Bot size={14} className="text-indigo-600" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-900">AI Fix Recommendation</span>
-                      </div>
-                    </div>
-                    <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-white">
-                      {integrationAIAnalysis && <AIAnalysisSection report={integrationAIAnalysis} />}
-                    </div>
-                  </div>
+                  <ReportWorkspace
+                    title="Reports & Tools"
+                    subtitle="Stay in the failure context: use the saved report dropdown for prior results and the 3-dot menu for integration notes or handoff context."
+                    reports={integrationWorkspaceReports}
+                    defaultTool="integration"
+                    analysisReport={integrationAIAnalysis}
+                    analysisTool="integration"
+                  />
                 </div>
               </div>
             )}
           </div>
         )}
       </div>
-
-      {/* Tool Modal Overlay */}
-      {activeTool && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-gray-900/50 backdrop-blur-sm p-8 animate-in fade-in duration-200">
-          <div className="bg-[#F7F8FA] flex-1 rounded-2xl shadow-2xl flex flex-col overflow-hidden relative max-w-[1600px] w-full mx-auto ring-1 ring-white/20">
-            <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 shrink-0">
-               <div className="flex items-center gap-3">
-                 <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
-                    <Bot size={18} />
-                 </div>
-                 <h3 className="font-bold text-gray-900 text-lg">MB.OS Agent Tool</h3>
-               </div>
-               <button 
-                onClick={() => setActiveTool(null)}
-                className="p-2 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 rounded-xl transition-colors"
-                aria-label="Close Tool"
-               >
-                <X size={20} />
-               </button>
-            </div>
-            <div className="flex-1 overflow-y-auto w-full mx-auto py-8">
-              {activeTool === 'quality' && <TestQualityTool />}
-              {activeTool === 'summary' && <SummaryTool />}
-              {activeTool === 'testgen' && <TestCaseTool />}
-              {activeTool === 'branches' && <UncoveredBranchesTool />}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
