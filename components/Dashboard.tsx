@@ -4,14 +4,12 @@ import {
   AlertCircle,
   ArrowRight,
   Bot,
-  Calendar,
   CheckCircle,
   Clock,
   FileText,
   GitBranch,
   Github,
   ListFilter,
-  MoreVertical,
   Play,
   Plus,
   RotateCcw,
@@ -43,7 +41,6 @@ export interface Feature {
   lastUpdated: string;
 }
 
-type DashboardTab = 'sessions' | 'work-items';
 type PanelView = 'new-module' | 'reports';
 type StatusFilter = 'all' | 'risk' | 'active' | 'complete';
 
@@ -174,7 +171,6 @@ const StatusBadge: React.FC<{ status: FeatureStatus }> = ({ status }) => {
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<DashboardTab>('sessions');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [features, setFeatures] = useState<Feature[]>(INITIAL_FEATURES);
@@ -227,9 +223,13 @@ export const Dashboard: React.FC = () => {
   });
 
   const atRiskCount = features.filter((feature) => riskStatuses.has(feature.status)).length;
+  const inProgressCount = features.filter((feature) => activeStatuses.has(feature.status)).length;
   const integrationCompleteCount = features.filter(
     (feature) => feature.status === FeatureStatus.INTEGRATION_COMPLETE
   ).length;
+  const averageCoverage =
+    features.reduce((total, feature) => total + Number(feature.coverage.split(' / ')[0].replace('%', '')), 0) /
+    Math.max(features.length, 1);
 
   const handleOpenPanel = (view: PanelView) => {
     setPanelView(view);
@@ -320,7 +320,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <>
-      <section className="panel-surface relative overflow-hidden rounded-[32px] p-5 sm:p-6 lg:p-8">
+      <section className="panel-surface relative overflow-hidden rounded-[30px] p-5 sm:p-6 lg:p-7">
         <div
           aria-hidden="true"
           className="absolute inset-y-0 right-0 w-full bg-[radial-gradient(circle_at_top_right,_rgba(177,31,41,0.14),_transparent_42%),radial-gradient(circle_at_bottom_right,_rgba(35,50,69,0.16),_transparent_36%)]"
@@ -329,29 +329,32 @@ export const Dashboard: React.FC = () => {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
               <ShieldCheck size={14} className="text-[#b11f29]" aria-hidden="true" />
-              Mercedes Validation & Release Readiness
+              Live Module Summary
             </div>
-            <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-slate-950 [text-wrap:balance] sm:text-[3.35rem]">
-              V-Cycle Control Tower
+            <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-slate-950 [text-wrap:balance] sm:text-[3.1rem]">
+              Module Overview
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-              A calmer interface for monitoring module health, launch readiness, and validation coverage without
-              burying operators in low-signal chrome.
+              A cleaner home for module progress, review risk, and V-cycle readiness. The goal here is fast orientation,
+              not decorative chrome.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <div className="rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm font-semibold text-slate-700">
-                {features.length} active modules
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="panel-card-soft rounded-[22px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">In Progress</div>
+                <div className="mt-2 text-2xl font-bold text-slate-950">{inProgressCount}</div>
               </div>
-              <div className="rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm font-semibold text-slate-700">
-                {atRiskCount} modules need attention
+              <div className="panel-card-soft rounded-[22px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Needs Attention</div>
+                <div className="mt-2 text-2xl font-bold text-slate-950">{atRiskCount}</div>
               </div>
-              <div className="rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm font-semibold text-slate-700">
-                {integrationCompleteCount} modules fully integrated
+              <div className="panel-card-soft rounded-[22px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Integrated</div>
+                <div className="mt-2 text-2xl font-bold text-slate-950">{integrationCompleteCount}</div>
               </div>
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:w-[360px]">
+          <div className="flex flex-col gap-3 lg:w-[330px]">
             <button
               type="button"
               onClick={() => handleOpenPanel('new-module')}
@@ -359,30 +362,30 @@ export const Dashboard: React.FC = () => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/45">Launch</div>
-                  <div className="mt-2 font-display text-xl font-bold">Create Module</div>
+                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/45">Primary Action</div>
+                  <div className="mt-2 font-display text-xl font-bold">New Module</div>
                 </div>
                 <Plus size={18} aria-hidden="true" />
               </div>
               <p className="mt-4 text-sm leading-6 text-white/70">
-                Define the target ECU, branch, and repository before handing control to the specialists.
+                Start a new validation run with repository, branch, ECU target, and rollout intent.
               </p>
             </button>
 
             <button
               type="button"
               onClick={() => handleOpenPanel('reports')}
-              className="focus-ring rounded-[24px] border border-white/70 bg-white/80 px-4 py-4 text-left text-slate-900 transition-colors hover:bg-white"
+              className="focus-ring panel-card-soft rounded-[24px] px-4 py-4 text-left text-slate-900 transition-colors hover:bg-white"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Review</div>
-                  <div className="mt-2 font-display text-xl font-bold">Inspect Reports</div>
+                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Secondary</div>
+                  <div className="mt-2 font-display text-xl font-bold">Recent Activity</div>
                 </div>
                 <FileText size={18} aria-hidden="true" />
               </div>
               <p className="mt-4 text-sm leading-6 text-slate-600">
-                Jump into module evidence, coverage summaries, and release notes from a single side panel.
+                Review the latest workflow entries and reopen a module without leaving the overview.
               </p>
             </button>
           </div>
@@ -424,47 +427,26 @@ export const Dashboard: React.FC = () => {
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Command View</div>
-              <h2 className="mt-2 font-display text-2xl font-bold text-slate-950">Module Sessions</h2>
+              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Modules</div>
+              <h2 className="mt-2 font-display text-2xl font-bold text-slate-950">Active Work</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                Focus the list by risk profile or search across branch, repository, and module metadata.
+                Search, filter, and open the modules that currently need review. Keep the list dense, calm, and scannable.
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="inline-flex rounded-full border border-white/70 bg-white/80 p-1">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('sessions')}
-                  className={`focus-ring rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                    activeTab === 'sessions'
-                      ? 'bg-slate-950 text-white shadow-[0_10px_24px_rgba(17,19,24,0.16)]'
-                      : 'text-slate-500 hover:text-slate-950'
-                  }`}
-                >
-                  Modules
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('work-items')}
-                  className={`focus-ring rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                    activeTab === 'work-items'
-                      ? 'bg-slate-950 text-white shadow-[0_10px_24px_rgba(17,19,24,0.16)]'
-                      : 'text-slate-500 hover:text-slate-950'
-                  }`}
-                >
-                  Validation Tasks
-                </button>
+            <div className="grid gap-3 sm:grid-cols-3 lg:w-[420px]">
+              <div className="panel-card-soft rounded-[22px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Modules</div>
+                <div className="mt-2 text-xl font-bold text-slate-950">{features.length}</div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => handleOpenPanel('reports')}
-                className="focus-ring inline-flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-950 hover:text-white"
-              >
-                <MoreVertical size={16} aria-hidden="true" />
-                More Actions
-              </button>
+              <div className="panel-card-soft rounded-[22px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Avg Coverage</div>
+                <div className="mt-2 text-xl font-bold text-slate-950">{Math.round(averageCoverage)}%</div>
+              </div>
+              <div className="panel-card-soft rounded-[22px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Review Risk</div>
+                <div className="mt-2 text-xl font-bold text-slate-950">{atRiskCount}</div>
+              </div>
             </div>
           </div>
 
@@ -493,10 +475,6 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-600">
-                <Calendar size={16} aria-hidden="true" />
-                Last 30 days
-              </div>
               <div className="relative min-w-0 sm:w-80">
                 <label htmlFor="module-search" className="sr-only">
                   Search modules
@@ -521,158 +499,146 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {activeTab === 'sessions' ? (
-        filteredFeatures.length > 0 ? (
-          <>
-            <div className="grid gap-4 md:hidden">
-              {filteredFeatures.map((feature) => (
-                <article key={feature.id} className="panel-surface rounded-[26px] p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="font-display text-xl font-bold text-slate-950">{feature.name}</h3>
-                      <p className="mt-2 break-words text-sm leading-6 text-slate-600">{feature.description}</p>
-                    </div>
-                    <StatusBadge status={feature.status} />
+      {filteredFeatures.length > 0 ? (
+        <>
+          <div className="grid gap-3 md:hidden">
+            {filteredFeatures.map((feature) => (
+              <article key={feature.id} className="panel-surface rounded-[24px] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="font-display text-xl font-bold text-slate-950">{feature.name}</h3>
+                    <p className="mt-2 break-words text-sm leading-6 text-slate-600">{feature.description}</p>
                   </div>
+                  <StatusBadge status={feature.status} />
+                </div>
 
-                  <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-2xl border border-white/70 bg-white/80 p-3">
-                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Repository</div>
-                      <div className="mt-2 flex items-center gap-2 font-semibold text-slate-900">
-                        <Github size={14} className="text-slate-400" aria-hidden="true" />
-                        <span className="min-w-0 truncate">{feature.repository}</span>
-                      </div>
-                    </div>
-                    <div className="rounded-2xl border border-white/70 bg-white/80 p-3">
-                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Branch</div>
-                      <div className="mt-2 flex items-center gap-2 font-mono text-xs font-semibold text-slate-900">
-                        <GitBranch size={14} className="text-slate-400" aria-hidden="true" />
-                        <span className="min-w-0 truncate">{feature.branchName}</span>
-                      </div>
-                    </div>
-                    <div className="rounded-2xl border border-white/70 bg-white/80 p-3">
-                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Checks</div>
-                      <div className="mt-2 font-semibold text-slate-900 [font-variant-numeric:tabular-nums]">
-                        {feature.checks}
-                      </div>
-                    </div>
-                    <div className="rounded-2xl border border-white/70 bg-white/80 p-3">
-                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Coverage</div>
-                      <div className="mt-2 font-semibold text-slate-900 [font-variant-numeric:tabular-nums]">
-                        {feature.coverage}
-                      </div>
+                <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                  <div className="panel-card-soft rounded-[20px] p-3">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Repository</div>
+                    <div className="mt-2 flex items-center gap-2 font-semibold text-slate-900">
+                      <Github size={14} className="text-slate-400" aria-hidden="true" />
+                      <span className="min-w-0 truncate">{feature.repository}</span>
                     </div>
                   </div>
-
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500">
-                      <Clock size={14} aria-hidden="true" />
-                      {feature.lastUpdated}
+                  <div className="panel-card-soft rounded-[20px] p-3">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Branch</div>
+                    <div className="mt-2 flex items-center gap-2 font-mono text-xs font-semibold text-slate-900">
+                      <GitBranch size={14} className="text-slate-400" aria-hidden="true" />
+                      <span className="min-w-0 truncate">{feature.branchName}</span>
                     </div>
-                    {renderActions(feature)}
                   </div>
-                </article>
-              ))}
-            </div>
+                  <div className="panel-card-soft rounded-[20px] p-3">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Checks</div>
+                    <div className="mt-2 font-semibold text-slate-900 [font-variant-numeric:tabular-nums]">
+                      {feature.checks}
+                    </div>
+                  </div>
+                  <div className="panel-card-soft rounded-[20px] p-3">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Coverage</div>
+                    <div className="mt-2 font-semibold text-slate-900 [font-variant-numeric:tabular-nums]">
+                      {feature.coverage}
+                    </div>
+                  </div>
+                </div>
 
-            <section className="panel-surface hidden overflow-hidden rounded-[30px] md:block">
-              <div className="overflow-x-auto">
-                <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
-                  <thead className="bg-white/65 text-slate-500">
-                    <tr>
-                      <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em]">Module</th>
-                      <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em]">Repository & Branch</th>
-                      <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em]">Checks</th>
-                      <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em]">Coverage</th>
-                      <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.18em]">Status</th>
-                      <th className="px-5 py-3.5 text-right text-[11px] font-bold uppercase tracking-[0.18em]">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredFeatures.map((feature) => (
-                      <tr
-                        key={feature.id}
-                        className="border-t border-white/80 transition-colors hover:bg-white/55"
-                      >
-                        <td className="px-5 py-4 align-top">
-                          <div className="min-w-0">
-                            <div className="font-display text-lg font-bold text-slate-950">{feature.name}</div>
-                            <p className="mt-1 max-w-sm text-sm leading-6 text-slate-600">{feature.description}</p>
-                            <div className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-slate-500">
-                              <Clock size={13} aria-hidden="true" />
-                              {feature.lastUpdated}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 align-top">
-                          <div className="flex min-w-0 flex-col gap-3">
-                            <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
-                              <Github size={15} className="text-slate-400" aria-hidden="true" />
-                              <span className="min-w-0 truncate">{feature.repository}</span>
-                            </div>
-                            <div className="inline-flex items-center gap-2 font-mono text-xs font-semibold text-slate-500">
-                              <GitBranch size={14} className="text-slate-400" aria-hidden="true" />
-                              <span className="min-w-0 truncate">{feature.branchName}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 align-top">
-                          <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-2 font-semibold text-slate-900 [font-variant-numeric:tabular-nums]">
-                            {feature.checks.startsWith('6') ? (
-                              <CheckCircle size={15} className="text-emerald-600" aria-hidden="true" />
-                            ) : (
-                              <AlertCircle size={15} className="text-rose-600" aria-hidden="true" />
-                            )}
-                            {feature.checks}
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 align-top">
-                          <div className="grid gap-1 text-sm [font-variant-numeric:tabular-nums]">
-                            <div className="font-semibold text-slate-950">{feature.coverage.split(' / ')[0]} actual</div>
-                            <div className="text-slate-500">{feature.coverage.split(' / ')[1]} target</div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 align-top">
-                          <StatusBadge status={feature.status} />
-                        </td>
-                        <td className="px-5 py-4 align-top text-right">{renderActions(feature)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          </>
-        ) : (
-          <section className="panel-surface rounded-[32px] p-10 text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_20px_36px_rgba(17,19,24,0.16)]">
-              <Search size={28} aria-hidden="true" />
-            </div>
-            <h3 className="mt-5 font-display text-2xl font-bold text-slate-950">No modules match this view</h3>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
-              Adjust the search term or filter selection to widen the result set.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchTerm('');
-                setStatusFilter('all');
-              }}
-              className="focus-ring mt-6 inline-flex items-center gap-2 rounded-full bg-[#b11f29] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#981822]"
-            >
-              Reset Filters
-            </button>
-          </section>
-        )
-      ) : (
-        <section className="panel-surface rounded-[32px] p-10 text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(135deg,#12161d,#233245)] text-white shadow-[0_20px_36px_rgba(17,19,24,0.18)]">
-            <CheckCircle size={28} aria-hidden="true" />
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500">
+                    <Clock size={14} aria-hidden="true" />
+                    {feature.lastUpdated}
+                  </div>
+                  {renderActions(feature)}
+                </div>
+              </article>
+            ))}
           </div>
-          <h3 className="mt-5 font-display text-2xl font-bold text-slate-950">No Pending Validation Tasks</h3>
+
+          <section className="panel-surface hidden overflow-hidden rounded-[28px] md:block">
+            <div className="overflow-x-auto">
+              <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
+                <thead className="bg-white/65 text-slate-500">
+                  <tr>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.18em]">Module</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.18em]">Repository & Branch</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.18em]">Checks</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.18em]">Coverage</th>
+                    <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.18em]">Status</th>
+                    <th className="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-[0.18em]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredFeatures.map((feature) => (
+                    <tr
+                      key={feature.id}
+                      className="border-t border-white/80 transition-colors hover:bg-white/45"
+                    >
+                      <td className="px-5 py-4 align-top">
+                        <div className="min-w-0">
+                          <div className="font-display text-lg font-bold text-slate-950">{feature.name}</div>
+                          <p className="mt-1 max-w-md text-sm leading-6 text-slate-600">{feature.description}</p>
+                          <div className="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-slate-500">
+                            <Clock size={13} aria-hidden="true" />
+                            {feature.lastUpdated}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 align-top">
+                        <div className="flex min-w-0 flex-col gap-2">
+                          <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+                            <Github size={15} className="text-slate-400" aria-hidden="true" />
+                            <span className="min-w-0 truncate">{feature.repository}</span>
+                          </div>
+                          <div className="inline-flex items-center gap-2 font-mono text-xs font-semibold text-slate-500">
+                            <GitBranch size={14} className="text-slate-400" aria-hidden="true" />
+                            <span className="min-w-0 truncate">{feature.branchName}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 align-top">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1.5 font-semibold text-slate-900 [font-variant-numeric:tabular-nums]">
+                          {feature.checks.startsWith('6') ? (
+                            <CheckCircle size={15} className="text-emerald-600" aria-hidden="true" />
+                          ) : (
+                            <AlertCircle size={15} className="text-rose-600" aria-hidden="true" />
+                          )}
+                          {feature.checks}
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 align-top">
+                        <div className="grid gap-1 text-sm [font-variant-numeric:tabular-nums]">
+                          <div className="font-semibold text-slate-950">{feature.coverage.split(' / ')[0]} actual</div>
+                          <div className="text-slate-500">{feature.coverage.split(' / ')[1]} target</div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 align-top">
+                        <StatusBadge status={feature.status} />
+                      </td>
+                      <td className="px-5 py-4 align-top text-right">{renderActions(feature)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </>
+      ) : (
+        <section className="panel-surface rounded-[30px] p-10 text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_20px_36px_rgba(17,19,24,0.16)]">
+            <Search size={28} aria-hidden="true" />
+          </div>
+          <h3 className="mt-5 font-display text-2xl font-bold text-slate-950">No modules match this view</h3>
           <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
-            The current schedule is clear. Check back later for approvals, escalations, or manual validation work.
+            Adjust the search term or filter selection to widen the result set.
           </p>
+          <button
+            type="button"
+            onClick={() => {
+              setSearchTerm('');
+              setStatusFilter('all');
+            }}
+            className="focus-ring mt-6 inline-flex items-center gap-2 rounded-full bg-[#b11f29] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#981822]"
+          >
+            Reset Filters
+          </button>
         </section>
       )}
 

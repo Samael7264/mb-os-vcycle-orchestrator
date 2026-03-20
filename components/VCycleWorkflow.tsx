@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   CheckCircle, Circle, Clock, AlertCircle, ChevronRight, Play, Check, X, 
   ArrowLeft, ArrowRight, Loader2, Layers, Bot, Send, Activity, ShieldCheck, Github, 
-  MessageSquare, GitBranch, BarChart2, RotateCcw, ChevronDown, User, FileText, MoreVertical,
+  MessageSquare, GitBranch, BarChart2, RotateCcw, ChevronDown, ChevronLeft, User, FileText, MoreVertical,
   Code2, FileJson, FolderOpen, Eye
 } from 'lucide-react';
 import Markdown from 'react-markdown';
@@ -112,30 +112,55 @@ interface FileItem {
 
 const FileViewer: React.FC<{ files: FileItem[] }> = ({ files }) => {
   const [selectedFile, setSelectedFile] = useState<FileItem>(files[0]);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
     <div className="flex h-full bg-white">
       {/* Sidebar */}
-      <div className="w-56 border-r border-gray-200/80 flex flex-col bg-slate-50/80">
-        <div className="px-4 py-3 border-b border-gray-200/80 flex items-center gap-2">
-          <FolderOpen size={16} className="text-gray-400" />
-          <span className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500">Workspace</span>
+      <div className={`${isSidebarCollapsed ? 'w-14' : 'w-56'} border-r border-gray-200/80 flex flex-col bg-slate-50/80 transition-[width] duration-200`}>
+        <div className={`px-3 py-3 border-b border-gray-200/80 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between gap-2'}`}>
+          {isSidebarCollapsed ? (
+            <button
+              type="button"
+              onClick={() => setIsSidebarCollapsed(false)}
+              className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+              aria-label="Expand workspace sidebar"
+            >
+              <ChevronRight size={16} />
+            </button>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <FolderOpen size={16} className="text-gray-400" />
+                <span className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500">Workspace</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSidebarCollapsed(true)}
+                className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                aria-label="Collapse workspace sidebar"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            </>
+          )}
         </div>
         <div className="flex-1 overflow-y-auto py-1.5">
           {files.map((file, idx) => (
             <button
               key={idx}
               onClick={() => setSelectedFile(file)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-2.5 text-left transition-colors ${
                 selectedFile.name === file.name 
                   ? 'bg-indigo-50 text-indigo-900 border-r-2 border-indigo-600' 
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
+              title={file.name}
             >
               {file.type === 'code' ? <Code2 size={16} className={selectedFile.name === file.name ? 'text-indigo-600' : 'text-gray-400'} /> : 
                file.type === 'report' ? <FileText size={16} className={selectedFile.name === file.name ? 'text-indigo-600' : 'text-gray-400'} /> : 
                <FileJson size={16} className={selectedFile.name === file.name ? 'text-indigo-600' : 'text-gray-400'} />}
-              <span className="text-sm font-medium truncate">{file.name}</span>
+              {!isSidebarCollapsed && <span className="text-sm font-medium truncate">{file.name}</span>}
             </button>
           ))}
         </div>
@@ -998,13 +1023,18 @@ const ReportWorkspace: React.FC<{
 
   return (
     <div className="panel-card rounded-[26px] flex flex-col h-[560px] overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-200/80 flex items-start justify-between gap-4 bg-white/90">
-        <div>
+      <div className="px-4 py-3 border-b border-gray-200/80 flex items-center justify-between gap-4 bg-white/90">
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-indigo-500" />
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-gray-900">{title}</span>
+            {selectedReport && (
+              <span className={`hidden sm:inline-flex px-2 py-1 rounded-full border text-[11px] font-semibold ${getToneClasses(selectedReport.tone)}`}>
+                {selectedReport.status}
+              </span>
+            )}
           </div>
-          <p className="text-sm text-gray-500 mt-2 max-w-xl">{subtitle}</p>
+          <p className="mt-1 text-xs text-gray-500 truncate">{subtitle}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <label className="sr-only" htmlFor={`${title}-report-picker`}>Saved report</label>
@@ -1082,9 +1112,6 @@ const ReportWorkspace: React.FC<{
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`px-2.5 py-1 rounded-full border text-xs font-semibold ${getToneClasses(selectedReport.tone)}`}>
-                      {selectedReport.status}
-                    </span>
                     <span className="text-xs text-gray-400">Saved: {selectedReport.generatedAt}</span>
                   </div>
                 </div>
@@ -1523,36 +1550,37 @@ Root cause was an unaligned memory allocation in the gateway driver.
   const integrationWorkspaceReports = buildIntegrationReports(feature.name, integrationReport, integrationState);
 
   return (
-    <div className="flex gap-6 max-w-[1500px] mx-auto">
+    <div className="flex gap-5 max-w-[1680px] mx-auto">
       <div className="flex-1 min-w-0">
-        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex items-center gap-4">
+        <div className="panel-card rounded-[24px] mb-4 px-4 py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3 min-w-0">
             <button 
               onClick={() => navigate('/')}
-              className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
             >
               <ArrowLeft size={20} />
             </button>
-            <div className="w-10 h-10 bg-[#2824D6] rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm">
+            <div className="w-10 h-10 bg-[#2824D6] rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
               {feature.name.charAt(0)}
             </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-gray-900 tracking-tight">{feature.name}</h1>
-                <span className="px-2 py-0.5 bg-orange-50 text-orange-600 border border-orange-100 rounded text-xs font-semibold flex items-center gap-1.5">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-lg font-bold text-gray-900 tracking-tight">{feature.name}</h1>
+                <span className="px-2 py-0.5 bg-orange-50 text-orange-600 border border-orange-100 rounded-full text-xs font-semibold flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                   In-Review
                 </span>
+                <span className="px-2 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-full text-xs font-semibold">
+                  {currentStageLabel}
+                </span>
               </div>
-              <div className="text-[13px] text-gray-500 font-medium mt-0.5">{feature.repository} · {feature.branchName}</div>
-              <div className="text-xs text-gray-400 mt-1">Dashboard / {feature.name} / {currentStageLabel}</div>
+              <div className="text-[13px] text-gray-500 font-medium mt-1 truncate">{feature.repository} · {feature.branchName}</div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="panel-card px-3.5 py-2 text-sm font-semibold text-gray-700 rounded-xl hover:bg-gray-50 flex items-center gap-2">
-              <Eye size={16} />
-              Compare
-            </button>
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <span>Dashboard</span>
+            <span>/</span>
+            <span>{feature.name}</span>
           </div>
         </div>
 
@@ -1635,8 +1663,8 @@ Root cause was an unaligned memory allocation in the gateway driver.
                   </div>
 
                   <ReportWorkspace
-                    title="Reports & Tools"
-                    subtitle="Keep the default analysis visible here, then switch to summaries or evidence views from the 3-dot menu without leaving the workflow."
+                    title="Review Workspace"
+                    subtitle="Switch between saved reports and contextual tools without leaving the workflow."
                     reports={staticWorkspaceReports}
                     defaultTool="analysis"
                     analysisReport={aiAnalysis}
@@ -1743,8 +1771,8 @@ Root cause was an unaligned memory allocation in the gateway driver.
                   </div>
 
                   <ReportWorkspace
-                    title="Reports & Tools"
-                    subtitle="Use the 3-dot menu to pivot between the default quality report, uncovered branches, generated tests, and the saved summaries for this module."
+                    title="Review Workspace"
+                    subtitle="Switch between saved reports and contextual tools without leaving the workflow."
                     reports={unitWorkspaceReports}
                     defaultTool="quality"
                     analysisReport={unitTestAIAnalysis}
@@ -1848,8 +1876,8 @@ Root cause was an unaligned memory allocation in the gateway driver.
                   </div>
 
                   <ReportWorkspace
-                    title="Reports & Tools"
-                    subtitle="Stay in the failure context: use the saved report dropdown for prior results and the 3-dot menu for integration notes or handoff context."
+                    title="Review Workspace"
+                    subtitle="Stay in context while switching between saved reports, handoff notes, and failure guidance."
                     reports={integrationWorkspaceReports}
                     defaultTool="integration"
                     analysisReport={integrationAIAnalysis}

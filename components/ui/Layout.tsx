@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, FileText, History, Sparkles, X } from 'lucide-react';
+import { Activity, History, Sparkles, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { CopilotTool } from '../CopilotTool';
 
@@ -13,8 +13,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navLinks = useMemo(
     () => [
-      { name: 'Dashboard', path: '/', icon: Activity },
-      { name: 'Summary', path: '/summary', icon: FileText },
+      { name: 'Overview', path: '/', icon: Activity },
       { name: 'History', path: '/history', icon: History },
     ],
     []
@@ -52,7 +51,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <div className="relative flex min-h-screen flex-col">
         <header className="px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[max(0.875rem,env(safe-area-inset-top))]">
-          <nav className="panel-surface mx-auto flex w-full max-w-[1500px] flex-col gap-3 rounded-[28px] px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
+          <nav className="panel-surface mx-auto flex w-full max-w-[1680px] flex-col gap-3 rounded-[28px] px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
             <div className="flex min-w-0 items-center gap-4">
               <Link
                 to="/"
@@ -63,10 +62,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
                 <div className="min-w-0">
                   <div className="font-display text-lg font-bold tracking-tight text-slate-950">
-                    V-Cycle Control Tower
+                    MB.OS Validation Overview
                   </div>
                   <p className="truncate text-xs font-medium text-slate-500">
-                    Mercedes validation workflows, orchestrated end to end.
+                    Module health, evidence, and release progress in one place.
                   </p>
                 </div>
               </Link>
@@ -136,7 +135,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           id="main-content"
           className="relative flex-1 overflow-y-auto px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))]"
         >
-          <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-6 pb-8 pt-4">
+          <div className="mx-auto flex w-full max-w-[1680px] flex-col gap-5 pb-8 pt-4">
             {children}
           </div>
         </main>
