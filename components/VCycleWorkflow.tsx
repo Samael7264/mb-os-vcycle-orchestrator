@@ -1556,46 +1556,45 @@ Root cause was an unaligned memory allocation in the gateway driver.
   return (
     <div className="flex gap-5 max-w-[1680px] mx-auto">
       <div className="flex-1 min-w-0">
-        <div className="panel-card rounded-[24px] mb-4 px-4 py-3 flex flex-col gap-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex items-center gap-3 min-w-0">
-              <button 
-                onClick={() => navigate('/')}
-                className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
-              >
-                <ArrowLeft size={20} />
-              </button>
-              <div className="w-10 h-10 bg-[#2824D6] rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
-                {feature.name.charAt(0)}
-              </div>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-lg font-bold text-gray-900 tracking-tight">{feature.name}</h1>
-                  <span className="px-2 py-0.5 bg-orange-50 text-orange-600 border border-orange-100 rounded-full text-xs font-semibold flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                    In-Review
-                  </span>
-                  <span className="px-2 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-full text-xs font-semibold">
-                    {currentStageLabel}
-                  </span>
-                </div>
-                <div className="text-[13px] text-gray-500 font-medium mt-1 truncate">{feature.repository} · {feature.branchName}</div>
-              </div>
+        <div className="panel-card rounded-[24px] mb-4 px-4 py-3 flex flex-col gap-3 xl:grid xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)_auto] xl:items-center">
+          <div className="flex items-center gap-3 min-w-0">
+            <button 
+              onClick={() => navigate('/')}
+              className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div className="w-10 h-10 bg-[#2824D6] rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
+              {feature.name.charAt(0)}
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-lg font-bold text-gray-900 tracking-tight">{feature.name}</h1>
+                <span className="px-2 py-0.5 bg-orange-50 text-orange-600 border border-orange-100 rounded-full text-xs font-semibold flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  In-Review
+                </span>
+                <span className="px-2 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-full text-xs font-semibold">
+                  {currentStageLabel}
+                </span>
+              </div>
+              <div className="text-[13px] text-gray-500 font-medium mt-1 truncate">{feature.repository} · {feature.branchName}</div>
+            </div>
+          </div>
+
+          <div className="min-w-0 xl:px-4">
+            <Stepper currentStep={currentStep} />
+          </div>
+
+          <div className="flex flex-col gap-2 xl:items-end">
+            <div className="hidden xl:flex items-center gap-2 text-xs text-gray-400">
               <span>Dashboard</span>
               <span>/</span>
               <span>{feature.name}</span>
             </div>
-          </div>
-          <div className="border-t border-gray-200/70 pt-3 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <Stepper currentStep={currentStep} />
             {isStaticReview && (
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between xl:justify-end xl:min-w-[420px]">
-                <div className="text-sm">
-                  <span className="font-bold text-gray-900">Review Required</span>
-                  <span className="ml-2 text-xs text-gray-400">Decide if this feature proceeds to Unit Testing.</span>
-                </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center xl:justify-end">
+                <span className="text-sm font-bold text-gray-900">Review Required</span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleReject}
@@ -1613,12 +1612,9 @@ Root cause was an unaligned memory allocation in the gateway driver.
               </div>
             )}
             {isUnitReview && (
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between xl:justify-end xl:min-w-[520px]">
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="text-sm">
-                    <span className="font-bold text-gray-900">Unit Testing Complete</span>
-                    <span className="ml-2 text-xs text-gray-400">Review coverage before proceeding.</span>
-                  </div>
+              <div className="flex flex-col gap-2 xl:items-end">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm font-bold text-gray-900">Unit Testing Complete</span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.18em]">Coverage</span>
                     <span className={`text-lg font-bold ${coverageScore < 85 ? 'text-amber-600' : 'text-emerald-600'}`}>{coverageScore}%</span>
@@ -1647,11 +1643,8 @@ Root cause was an unaligned memory allocation in the gateway driver.
               </div>
             )}
             {isIntegrationReview && (
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between xl:justify-end xl:min-w-[460px]">
-                <div className="text-sm">
-                  <span className="font-bold text-gray-900">Integration Failed</span>
-                  <span className="ml-2 text-xs text-gray-400">Review the recommendations and decide how to proceed.</span>
-                </div>
+              <div className="flex flex-col gap-2 xl:items-end">
+                <span className="text-sm font-bold text-gray-900">Integration Failed</span>
                 <div className="flex flex-wrap gap-2">
                   <button 
                     onClick={() => setIntegrationState('idle')}
