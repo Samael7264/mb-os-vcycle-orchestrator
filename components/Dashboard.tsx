@@ -299,84 +299,88 @@ export const Dashboard: React.FC = () => {
           aria-hidden="true"
           className="absolute inset-y-0 right-0 w-full bg-[radial-gradient(circle_at_top_right,_rgba(177,31,41,0.14),_transparent_42%),radial-gradient(circle_at_bottom_right,_rgba(35,50,69,0.16),_transparent_36%)]"
         />
-        <div className="relative grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(420px,0.9fr)_320px] xl:items-center">
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+        <div className="relative flex flex-col gap-4">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div className="min-w-0 max-w-2xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
               <ShieldCheck size={14} className="text-[#b11f29]" aria-hidden="true" />
-              Live Module Summary
+                Live Module Summary
+              </div>
+              <div className="mt-3 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+                <div className="min-w-0">
+                  <h1 className="font-display text-[2rem] font-bold tracking-tight text-slate-950 sm:text-[2.2rem]">
+                    Module Overview
+                  </h1>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    Fast orientation for module progress, review risk, and V-cycle readiness.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenPanel('new-module')}
+                    className="focus-ring inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_28px_rgba(17,19,24,0.14)] transition-colors hover:bg-black"
+                  >
+                    <Plus size={16} aria-hidden="true" />
+                    New Module
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenPanel('reports')}
+                    className="focus-ring inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-white hover:text-slate-950"
+                  >
+                    <FileText size={16} aria-hidden="true" />
+                    Recent Activity
+                  </button>
+                </div>
+              </div>
             </div>
-            <h1 className="mt-3 font-display text-[2.4rem] font-bold tracking-tight text-slate-950 [text-wrap:balance] sm:text-[2.65rem]">
-              Module Overview
-            </h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
-              Fast orientation for module progress, review risk, and V-cycle readiness.
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:w-[560px] xl:grid-cols-4">
+              <div className="panel-card-soft rounded-[20px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Modules</div>
+                <div className="mt-1 text-2xl font-bold text-slate-950">{features.length}</div>
+              </div>
+              <div className="panel-card-soft rounded-[20px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">In Progress</div>
+                <div className="mt-1 text-2xl font-bold text-slate-950">{inProgressCount}</div>
+              </div>
+              <div className="panel-card-soft rounded-[20px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Needs Attention</div>
+                <div className="mt-1 text-2xl font-bold text-slate-950">{atRiskCount}</div>
+              </div>
+              <div className="panel-card-soft rounded-[20px] px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Avg Coverage</div>
+                <div className="mt-1 text-2xl font-bold text-slate-950">{Math.round(averageCoverage)}%</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3 border-t border-white/70 pt-3 text-sm text-slate-600 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+            <p className="min-w-0">
+              Keep this page dense and operational: create modules, reopen recent work, and jump straight into items that need review.
             </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="panel-card-soft rounded-[20px] px-4 py-3">
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Modules</div>
-              <div className="mt-1.5 text-2xl font-bold text-slate-950">{features.length}</div>
-            </div>
-            <div className="panel-card-soft rounded-[20px] px-4 py-3">
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">In Progress</div>
-              <div className="mt-1.5 text-2xl font-bold text-slate-950">{inProgressCount}</div>
-            </div>
-            <div className="panel-card-soft rounded-[20px] px-4 py-3">
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Needs Attention</div>
-              <div className="mt-1.5 text-2xl font-bold text-slate-950">{atRiskCount}</div>
-            </div>
-            <div className="panel-card-soft rounded-[20px] px-4 py-3">
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Avg Coverage</div>
-              <div className="mt-1.5 text-2xl font-bold text-slate-950">{Math.round(averageCoverage)}%</div>
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-            <button
-              type="button"
-              onClick={() => handleOpenPanel('new-module')}
-              className="focus-ring rounded-[24px] bg-slate-950 px-4 py-4 text-left text-white shadow-[0_18px_32px_rgba(17,19,24,0.16)] transition-colors hover:bg-black"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/45">Primary Action</div>
-                  <div className="mt-2 font-display text-xl font-bold">New Module</div>
-                </div>
-                <Plus size={18} aria-hidden="true" />
+            <div className="flex flex-wrap gap-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-600">
+                <Clock size={14} className="text-slate-400" aria-hidden="true" />
+                {inProgressCount} active reviews
               </div>
-              <p className="mt-4 text-sm leading-6 text-white/70">
-                Start a new validation run with repository, branch, ECU target, and rollout intent.
-              </p>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleOpenPanel('reports')}
-              className="focus-ring panel-card-soft rounded-[24px] px-4 py-4 text-left text-slate-900 transition-colors hover:bg-white"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Secondary</div>
-                  <div className="mt-2 font-display text-xl font-bold">Recent Activity</div>
-                </div>
-                <FileText size={18} aria-hidden="true" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-600">
+                <AlertCircle size={14} className="text-amber-500" aria-hidden="true" />
+                {atRiskCount} needs attention
               </div>
-              <p className="mt-4 text-sm leading-6 text-slate-600">
-                Review the latest workflow entries and reopen a module without leaving the overview.
-              </p>
-            </button>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="panel-surface rounded-[28px] p-4 sm:p-5">
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Modules</div>
-              <h2 className="mt-2 font-display text-[1.9rem] font-bold text-slate-950">Active Work</h2>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+              <h2 className="mt-1 font-display text-[1.75rem] font-bold text-slate-950">Active Work</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
                 Search, filter, and open the modules that currently need review.
               </p>
             </div>
