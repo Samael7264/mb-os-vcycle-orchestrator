@@ -201,6 +201,12 @@ export const Dashboard: React.FC = () => {
   const integrationCompleteCount = features.filter(
     (feature) => feature.status === FeatureStatus.INTEGRATION_COMPLETE
   ).length;
+  const statusFilters = [
+    { key: 'all' as const, label: 'All Modules' },
+    { key: 'risk' as const, label: 'Needs Attention' },
+    { key: 'active' as const, label: 'In Progress' },
+    { key: 'complete' as const, label: 'Integrated' },
+  ];
   const averageCoverage =
     features.reduce((total, feature) => total + Number(feature.coverage.split(' / ')[0].replace('%', '')), 0) /
     Math.max(features.length, 1);
@@ -403,44 +409,34 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      <section className="panel-surface rounded-[28px] p-4 sm:p-5">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <div>
+      <section className="panel-surface overflow-hidden rounded-[28px]">
+        <div className="border-b border-white/70 px-4 py-3 sm:px-5">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex items-center gap-3">
               <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Modules</div>
-              <h2 className="mt-1 font-display text-[1.75rem] font-bold text-slate-950">Active Work</h2>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
-                Search, filter, and open the modules that currently need review.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-wrap gap-2">
-              {[
-                { key: 'all' as const, label: 'All Modules' },
-                { key: 'risk' as const, label: 'Needs Attention' },
-                { key: 'active' as const, label: 'In Progress' },
-                { key: 'complete' as const, label: 'Integrated' },
-              ].map((filter) => (
-                <button
-                  key={filter.key}
-                  type="button"
-                  onClick={() => setStatusFilter(filter.key)}
-                  className={`focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                    statusFilter === filter.key
-                      ? 'bg-[#b11f29] text-white shadow-[0_14px_26px_rgba(177,31,41,0.24)]'
-                      : 'border border-white/70 bg-white/70 text-slate-600 hover:bg-white hover:text-slate-950'
-                  }`}
-                >
-                  <ListFilter size={15} aria-hidden="true" />
-                  {filter.label}
-                </button>
-              ))}
+              <h2 className="font-display text-[1.35rem] font-bold text-slate-950">Active Work</h2>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="relative min-w-0 sm:w-80">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-end">
+              <div className="flex flex-wrap gap-2">
+                {statusFilters.map((filter) => (
+                  <button
+                    key={filter.key}
+                    type="button"
+                    onClick={() => setStatusFilter(filter.key)}
+                    className={`focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                      statusFilter === filter.key
+                        ? 'bg-[#b11f29] text-white shadow-[0_14px_26px_rgba(177,31,41,0.24)]'
+                        : 'border border-white/70 bg-white/70 text-slate-600 hover:bg-white hover:text-slate-950'
+                    }`}
+                  >
+                    <ListFilter size={15} aria-hidden="true" />
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative min-w-0 xl:w-80">
                 <label htmlFor="module-search" className="sr-only">
                   Search modules
                 </label>
@@ -456,17 +452,16 @@ export const Dashboard: React.FC = () => {
                   placeholder="Search modules…"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
-                  className="focus-ring w-full rounded-full border border-white/80 bg-white/90 py-3 pl-11 pr-4 text-sm placeholder:text-slate-400"
+                  className="focus-ring w-full rounded-full border border-white/80 bg-white/90 py-2.5 pl-11 pr-4 text-sm placeholder:text-slate-400"
                 />
               </div>
             </div>
           </div>
         </div>
-      </section>
 
-      {filteredFeatures.length > 0 ? (
-        <>
-          <div className="grid gap-3 md:hidden">
+        {filteredFeatures.length > 0 ? (
+          <>
+          <div className="grid gap-3 p-4 md:hidden">
             {filteredFeatures.map((feature) => (
               <article key={feature.id} className="panel-surface rounded-[24px] p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -517,7 +512,7 @@ export const Dashboard: React.FC = () => {
             ))}
           </div>
 
-          <section className="panel-surface hidden overflow-hidden rounded-[28px] md:block">
+          <div className="hidden md:block">
             <div className="overflow-x-auto">
               <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
                 <thead className="bg-white/65 text-slate-500">
@@ -583,10 +578,10 @@ export const Dashboard: React.FC = () => {
                 </tbody>
               </table>
             </div>
-          </section>
+          </div>
         </>
       ) : (
-        <section className="panel-surface rounded-[30px] p-10 text-center">
+        <div className="p-10 text-center">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_20px_36px_rgba(17,19,24,0.16)]">
             <Search size={28} aria-hidden="true" />
           </div>
@@ -604,8 +599,9 @@ export const Dashboard: React.FC = () => {
           >
             Reset Filters
           </button>
-        </section>
+        </div>
       )}
+      </section>
 
       {isPanelOpen && (
         <>
